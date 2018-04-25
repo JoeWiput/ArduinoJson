@@ -11,6 +11,7 @@
 #include "../../TypeTraits/IsConst.hpp"
 #include "../Encoding.hpp"
 #include "./Comments.hpp"
+#include "../../Reading/Reader.hpp"
 
 namespace ArduinoJson {
 namespace Internals {
@@ -186,7 +187,7 @@ class JsonDeserializer {
 
 template <typename TJsonBuffer, typename TString, typename Enable = void>
 struct JsonParserBuilder {
-  typedef typename StringTraits<TString>::Reader InputReader;
+  typedef typename Reader<TString>::type InputReader;
   typedef JsonDeserializer<InputReader, TJsonBuffer &> TParser;
 
   static TParser makeParser(TJsonBuffer *buffer, TString &json,
@@ -198,7 +199,7 @@ struct JsonParserBuilder {
 template <typename TJsonBuffer, typename TChar>
 struct JsonParserBuilder<TJsonBuffer, TChar *,
                          typename EnableIf<!IsConst<TChar>::value>::type> {
-  typedef typename StringTraits<TChar *>::Reader TReader;
+  typedef typename Reader<TChar *>::type TReader;
   typedef StringWriter<TChar> TWriter;
   typedef JsonDeserializer<TReader, TWriter> TParser;
 
