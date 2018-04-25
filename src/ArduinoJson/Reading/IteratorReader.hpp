@@ -7,22 +7,30 @@
 namespace ArduinoJson {
 namespace Internals {
 
-template<typename TIterable>
+template<typename TIterator>
 class IteratorReader {
-  typename TIterable::const_iterator _ptr;
-  typename TIterable::const_iterator const _end;
+  TIterator _ptr;
+  TIterator const _end;
 
  public:
+  template<typename TIterable>
   IteratorReader(const TIterable& input)
       : _ptr(input.begin()), _end(input.end()) {}
 
+  IteratorReader(TIterator begin, TIterator end)
+      : _ptr(begin), _end(end) {}
+
+  bool ended() {
+    return _ptr == _end;
+  }
+
   void move() {
     if (_ptr != _end)
-    ++_ptr;
+      ++_ptr;
   }
 
   char current() const {
-    return char(_ptr[0]);
+    return char(*_ptr);
   }
 
   char next() const {

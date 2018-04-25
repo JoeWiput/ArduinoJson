@@ -14,7 +14,16 @@ namespace ArduinoJson{
 namespace Internals {
 template<typename TInput, typename Enable = void>
 struct Reader {
-typedef IteratorReader<TInput> type;
+};
+
+template<typename T, typename R = void>
+struct Enable {
+typedef R type;
+};
+
+template<typename TIterable>
+struct Reader<TIterable, typename Enable<typename TIterable::const_iterator>::type > {
+typedef IteratorReader<typename TIterable::const_iterator> type;
 };
 
 template<typename TChar>
@@ -32,7 +41,6 @@ struct Reader<
    typedef ArduinoStreamReader type;
 }
 #endif
-
 
 #if ARDUINOJSON_ENABLE_STD_STREAM
 template<typename TStream>

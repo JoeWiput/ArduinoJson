@@ -6,31 +6,31 @@
 
 namespace ArduinoJson {
 namespace Internals {
-template <typename TInput>
-void skipSpacesAndComments(TInput& input) {
+template <typename TReader>
+void skipSpacesAndComments(TReader& reader) {
   for (;;) {
-    switch (input.current()) {
+    switch (reader.current()) {
       // spaces
       case ' ':
       case '\t':
       case '\r':
       case '\n':
-        input.move();
+        reader.move();
         continue;
 
       // comments
       case '/':
-        switch (input.next()) {
+        switch (reader.next()) {
           // C-style block comment
           case '*':
-            input.move();  // skip '/'
+            reader.move();  // skip '/'
             // no need to skip '*'
             for (;;) {
-              input.move();
-              if (input.current() == '\0') return;
-              if (input.current() == '*' && input.next() == '/') {
-                input.move();  // skip '*'
-                input.move();  // skip '/'
+              reader.move();
+              if (reader.current() == '\0') return;
+              if (reader.current() == '*' && reader.next() == '/') {
+                reader.move();  // skip '*'
+                reader.move();  // skip '/'
                 break;
               }
             }
@@ -40,9 +40,9 @@ void skipSpacesAndComments(TInput& input) {
           case '/':
             // not need to skip "//"
             for (;;) {
-              input.move();
-              if (input.current() == '\0') return;
-              if (input.current() == '\n') break;
+              reader.move();
+              if (reader.current() == '\0') return;
+              if (reader.current() == '\n') break;
             }
             break;
 
