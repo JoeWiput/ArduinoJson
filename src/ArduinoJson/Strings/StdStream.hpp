@@ -12,37 +12,6 @@ namespace ArduinoJson {
 namespace Internals {
 
 struct StdStreamTraits {
-  class Reader {
-    std::istream& _stream;
-    char _current, _next;
-
-   public:
-    Reader(std::istream& stream) : _stream(stream), _current(0), _next(0) {}
-
-    void move() {
-      _current = _next;
-      _next = 0;
-    }
-
-    char current() {
-      if (!_current) _current = read();
-      return _current;
-    }
-
-    char next() {
-      // assumes that current() has been called
-      if (!_next) _next = read();
-      return _next;
-    }
-
-   private:
-    Reader& operator=(const Reader&);  // Visual Studio C4512
-
-    char read() {
-      return _stream.eof() ? '\0' : static_cast<char>(_stream.get());
-    }
-  };
-
   static const bool has_append = false;
   static const bool has_equals = false;
 };

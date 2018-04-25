@@ -11,6 +11,7 @@
 #include "./MsgPackError.hpp"
 #include "./endianess.hpp"
 #include "./ieee754.hpp"
+#include "../Reading/Reader.hpp"
 
 namespace ArduinoJson {
 namespace Internals {
@@ -260,7 +261,7 @@ class MsgPackDeserializer {
 
 template <typename TJsonBuffer, typename TString, typename Enable = void>
 struct MsgPackDeserializerBuilder {
-  typedef typename StringTraits<TString>::Reader InputReader;
+  typedef typename Reader<TString>::type InputReader;
   typedef MsgPackDeserializer<InputReader, TJsonBuffer &> TParser;
 
   static TParser makeMsgPackDeserializer(TJsonBuffer *buffer, TString &json,
@@ -272,7 +273,7 @@ struct MsgPackDeserializerBuilder {
 template <typename TJsonBuffer, typename TChar>
 struct MsgPackDeserializerBuilder<
     TJsonBuffer, TChar *, typename EnableIf<!IsConst<TChar>::value>::type> {
-  typedef typename StringTraits<TChar *>::Reader TReader;
+  typedef typename Reader<TChar *>::type TReader;
   typedef StringWriter<TChar> TWriter;
   typedef MsgPackDeserializer<TReader, TWriter> TParser;
 
