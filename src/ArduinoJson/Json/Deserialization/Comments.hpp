@@ -20,23 +20,25 @@ JsonError skipSpacesAndComments(TReader& reader) {
 
       // comments
       case '/':
-        switch (reader.next()) {
-          // C-style block comment
-          case '*':
-            reader.move();  // skip '/'
-            // no need to skip '*'
+        reader.move();  // skip '/'
+        switch (reader.current()) {
+          // block comment
+          case '*': {
+            reader.move();  // skip '*'
+            bool wasStar = false;
             for (;;) {
-              reader.move();
               if (reader.current() == '\0') return JsonError::IncompleteInput;
-              if (reader.current() == '*' && reader.next() == '/') {
-                reader.move();  // skip '*'
-                reader.move();  // skip '/'
+              if (reader.current() == '/' && wasStar) {
+                reader.move();
                 break;
               }
+              wasStar = reader.current() == '*';
+              reader.move();
             }
             break;
+          }
 
-          // C++-style line comment
+          // trailing comment
           case '/':
             // not need to skip "//"
             for (;;) {

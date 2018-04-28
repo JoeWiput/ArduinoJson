@@ -58,6 +58,12 @@ class JsonDeserializer {
     return eat(_reader, charToSkip);
   }
 
+  FORCE_INLINE bool eat1(char charToSkip) {
+    if (_reader.current() != charToSkip) return false;
+    _reader.move();
+    return true;
+  }
+
   JsonError parseArray(JsonVariant &variant) {
     if (_nestingLimit == 0) return JsonError::TooDeep;
 
@@ -66,22 +72,38 @@ class JsonDeserializer {
     variant = array;
 
     // Check opening braket
-    if (!eat('[')) return JsonError::InvalidInput;
-    if (eat(']')) return JsonError::Ok;
+    if (!eat1('[')) return JsonError::InvalidInput;
+
+    // Skip spaces
+    {
+      JsonError err = skipSpacesAndComments(_reader);
+      if (err) return err;
+    }
+
+    // Empty array?
+    if (eat1(']')) return JsonError::Ok;
 
     // Read each value
     for (;;) {
       // 1 - Parse value
-      JsonVariant value;
-      _nestingLimit--;
-      JsonError error = parse(value);
-      _nestingLimit++;
-      if (error != JsonError::Ok) return error;
-      if (!array->add(value)) return JsonError::NoMemory;
+      {
+        JsonVariant value;
+        _nestingLimit--;
+        JsonError err = parse(value);
+        _nestingLimit++;
+        if (err) return err;
+        if (!array->add(value)) return JsonError::NoMemory;
+      }
 
-      // 2 - More values?
-      if (eat(']')) return JsonError::Ok;
-      if (!eat(',')) return JsonError::InvalidInput;
+      // 2 - Skip spaces
+      {
+        JsonError err = skipSpacesAndComments(_reader);
+        if (err) return err;
+      }
+
+      // 3 - More values?
+      if (eat1(']')) return JsonError::Ok;
+      if (!eat1(',')) return JsonError::InvalidInput;
     }
   }
 
@@ -187,7 +209,7 @@ class JsonDeserializer {
   TReader _reader;
   TWriter _writer;
   uint8_t _nestingLimit;
-};
+};  // namespace Internals
 
 template <typename TJsonBuffer, typename TString, typename Enable = void>
 struct JsonParserBuilder {
