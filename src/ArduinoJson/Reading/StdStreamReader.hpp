@@ -13,25 +13,18 @@ namespace Internals {
 
 class StdStreamReader {
   std::istream& _stream;
-  char _current, _next;
+  char _current;
 
  public:
-  StdStreamReader(std::istream& stream) : _stream(stream), _current(0), _next(0) {}
+  StdStreamReader(std::istream& stream) : _stream(stream), _current(0) {}
 
   void move() {
-    _current = _next;
-    _next = 0;
+    _current = 0;
   }
 
   char current() {
     if (!_current) _current = read();
     return _current;
-  }
-
-  char next() {
-    // assumes that current() has been called
-    if (!_next) _next = read();
-    return _next;
   }
 
  private:
@@ -41,7 +34,7 @@ class StdStreamReader {
     return _stream.eof() ? '\0' : static_cast<char>(_stream.get());
   }
 };
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson
 
 #endif

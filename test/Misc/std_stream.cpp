@@ -57,7 +57,7 @@ TEST_CASE("std::stream") {
     REQUIRE("\"value\"" == os.str());
   }
 
-  SECTION("ParseArray") {
+  SECTION("Should deserialize array") {
     std::istringstream json(" [ 42 /* comment */ ] ");
     DynamicJsonDocument doc;
     JsonError err = deserializeJson(doc, json);
@@ -68,7 +68,7 @@ TEST_CASE("std::stream") {
     REQUIRE(42 == arr[0]);
   }
 
-  SECTION("ParseObject") {
+  SECTION("Should deserialize object") {
     std::istringstream json(" { hello : world // comment\n }");
     DynamicJsonDocument doc;
     JsonError err = deserializeJson(doc, json);
@@ -79,10 +79,17 @@ TEST_CASE("std::stream") {
     REQUIRE(std::string("world") == obj["hello"]);
   }
 
-  SECTION("ShouldNotReadPastTheEnd") {
+  SECTION("Should not read after the closing brace") {
     std::istringstream json("{}123");
     DynamicJsonDocument doc;
     deserializeJson(doc, json);
-    REQUIRE('1' == json.get());
+    REQUIRE('1' == char(json.get()));
+  }
+
+  SECTION("Should not read after the closing bracket") {
+    std::istringstream json("[]123");
+    DynamicJsonDocument doc;
+    deserializeJson(doc, json);
+    REQUIRE('1' == char(json.get()));
   }
 }

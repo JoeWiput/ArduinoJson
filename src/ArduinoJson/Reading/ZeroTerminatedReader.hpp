@@ -16,16 +16,13 @@ class ZeroTerminatedReader {
       : _ptr(ptr ? ptr : reinterpret_cast<const TChar*>("")) {}
 
   void move() {
+    // if (*_ptr)  <- TODO
     ++_ptr;
   }
 
   char current() const {
-    return char(_ptr[0]);
-  }
-
-  char next() const {
-    return char(_ptr[1]);
+    return char(*_ptr);
   }
 };
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson

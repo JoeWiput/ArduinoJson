@@ -13,25 +13,18 @@ namespace Internals {
 
 struct ArduinoStreamReader {
   Stream& _stream;
-  char _current, _next;
+  char _current;
 
  public:
-  ArduinoStreamReader(Stream& stream) : _stream(stream), _current(0), _next(0) {}
+  ArduinoStreamReader(Stream& stream) : _stream(stream), _current(0) {}
 
   void move() {
-    _current = _next;
-    _next = 0;
+    _current = 0;
   }
 
   char current() {
     if (!_current) _current = read();
     return _current;
-  }
-
-  char next() {
-    // assumes that current() has been called
-    if (!_next) _next = read();
-    return _next;
   }
 
  private:

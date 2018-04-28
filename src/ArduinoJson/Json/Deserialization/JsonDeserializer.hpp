@@ -47,7 +47,7 @@ class JsonDeserializer {
  private:
   JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
 
-  FORCE_INLINE bool eat1(char charToSkip) {
+  FORCE_INLINE bool eat(char charToSkip) {
     if (_reader.current() != charToSkip) return false;
     _reader.move();
     return true;
@@ -61,14 +61,14 @@ class JsonDeserializer {
     variant = array;
 
     // Check opening braket
-    if (!eat1('[')) return JsonError::InvalidInput;
+    if (!eat('[')) return JsonError::InvalidInput;
 
     // Skip spaces
     JsonError err = skipSpacesAndComments(_reader);
     if (err) return err;
 
     // Empty array?
-    if (eat1(']')) return JsonError::Ok;
+    if (eat(']')) return JsonError::Ok;
 
     // Read each value
     for (;;) {
@@ -85,8 +85,8 @@ class JsonDeserializer {
       if (err) return err;
 
       // 3 - More values?
-      if (eat1(']')) return JsonError::Ok;
-      if (!eat1(',')) return JsonError::InvalidInput;
+      if (eat(']')) return JsonError::Ok;
+      if (!eat(',')) return JsonError::InvalidInput;
     }
   }
 
@@ -98,14 +98,14 @@ class JsonDeserializer {
     variant = object;
 
     // Check opening brace
-    if (!eat1('{')) return JsonError::InvalidInput;
+    if (!eat('{')) return JsonError::InvalidInput;
 
     // Skip spaces
     JsonError err = skipSpacesAndComments(_reader);
     if (err) return err;
 
     // Empty object?
-    if (eat1('}')) return JsonError::Ok;
+    if (eat('}')) return JsonError::Ok;
 
     // Read each key value pair
     for (;;) {
@@ -119,7 +119,7 @@ class JsonDeserializer {
       if (err) return err;
 
       // Colon
-      if (!eat1(':')) return JsonError::InvalidInput;
+      if (!eat(':')) return JsonError::InvalidInput;
 
       // Parse value
       JsonVariant value;
@@ -134,14 +134,15 @@ class JsonDeserializer {
       if (err) return err;
 
       // More keys/values?
-      if (eat1('}')) return JsonError::Ok;
-      if (!eat1(',')) return JsonError::InvalidInput;
+      if (eat('}')) return JsonError::Ok;
+      if (!eat(',')) return JsonError::InvalidInput;
 
       // Skip spaces
       err = skipSpacesAndComments(_reader);
       if (err) return err;
     }
   }
+
   JsonError parseValue(JsonVariant &variant) {
     bool hasQuotes = isQuote(_reader.current());
     const char *value;
@@ -158,7 +159,6 @@ class JsonDeserializer {
   JsonError parseString(const char **result) {
     typename RemoveReference<TWriter>::type::String str = _writer.startString();
 
-    skipSpacesAndComments(_reader);
     char c = _reader.current();
 
     if (isQuote(c)) {  // quotes
