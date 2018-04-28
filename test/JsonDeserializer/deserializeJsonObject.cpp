@@ -423,8 +423,10 @@ TEST_CASE("deserialize JSON object") {
 
     SECTION("After closing brace") {
       JsonError err = deserializeJson(doc, "{\"hello\":\"world\"}/");
+      JsonObject& obj = doc.as<JsonObject>();
 
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
     }
 
     SECTION("Before comma") {

@@ -47,17 +47,6 @@ class JsonDeserializer {
  private:
   JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
 
-  static bool eat(TReader &reader, char charToSkip) {
-    skipSpacesAndComments(reader);
-    if (reader.current() != charToSkip) return false;
-    reader.move();
-    return true;
-  }
-
-  FORCE_INLINE bool eat(char charToSkip) {
-    return eat(_reader, charToSkip);
-  }
-
   FORCE_INLINE bool eat1(char charToSkip) {
     if (_reader.current() != charToSkip) return false;
     _reader.move();
@@ -75,10 +64,8 @@ class JsonDeserializer {
     if (!eat1('[')) return JsonError::InvalidInput;
 
     // Skip spaces
-    {
-      JsonError err = skipSpacesAndComments(_reader);
-      if (err) return err;
-    }
+    JsonError err = skipSpacesAndComments(_reader);
+    if (err) return err;
 
     // Empty array?
     if (eat1(']')) return JsonError::Ok;
@@ -86,20 +73,16 @@ class JsonDeserializer {
     // Read each value
     for (;;) {
       // 1 - Parse value
-      {
-        JsonVariant value;
-        _nestingLimit--;
-        JsonError err = parse(value);
-        _nestingLimit++;
-        if (err) return err;
-        if (!array->add(value)) return JsonError::NoMemory;
-      }
+      JsonVariant value;
+      _nestingLimit--;
+      err = parse(value);
+      _nestingLimit++;
+      if (err) return err;
+      if (!array->add(value)) return JsonError::NoMemory;
 
       // 2 - Skip spaces
-      {
-        JsonError err = skipSpacesAndComments(_reader);
-        if (err) return err;
-      }
+      err = skipSpacesAndComments(_reader);
+      if (err) return err;
 
       // 3 - More values?
       if (eat1(']')) return JsonError::Ok;
@@ -115,28 +98,48 @@ class JsonDeserializer {
     variant = object;
 
     // Check opening brace
-    if (!eat('{')) return JsonError::InvalidInput;
-    if (eat('}')) return JsonError::Ok;
+    if (!eat1('{')) return JsonError::InvalidInput;
+
+    // Skip spaces
+    JsonError err = skipSpacesAndComments(_reader);
+    if (err) return err;
+
+    // Empty object?
+    if (eat1('}')) return JsonError::Ok;
 
     // Read each key value pair
     for (;;) {
-      // 1 - Parse key
+      // Parse key
       const char *key;
-      JsonError error = parseString(&key);
-      if (error) return error;
-      if (!eat(':')) return JsonError::InvalidInput;
+      err = parseString(&key);
+      if (err) return err;
 
-      // 2 - Parse value
+      // Skip spaces
+      err = skipSpacesAndComments(_reader);
+      if (err) return err;
+
+      // Colon
+      if (!eat1(':')) return JsonError::InvalidInput;
+
+      // Parse value
       JsonVariant value;
       _nestingLimit--;
-      error = parse(value);
+      err = parse(value);
       _nestingLimit++;
-      if (error != JsonError::Ok) return error;
+      if (err) return err;
       if (!object->set(key, value)) return JsonError::NoMemory;
 
-      // 3 - More keys/values?
-      if (eat('}')) return JsonError::Ok;
-      if (!eat(',')) return JsonError::InvalidInput;
+      // Skip spaces
+      err = skipSpacesAndComments(_reader);
+      if (err) return err;
+
+      // More keys/values?
+      if (eat1('}')) return JsonError::Ok;
+      if (!eat1(',')) return JsonError::InvalidInput;
+
+      // Skip spaces
+      err = skipSpacesAndComments(_reader);
+      if (err) return err;
     }
   }
   JsonError parseValue(JsonVariant &variant) {
