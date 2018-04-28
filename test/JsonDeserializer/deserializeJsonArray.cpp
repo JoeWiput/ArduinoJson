@@ -247,7 +247,7 @@ TEST_CASE("deserialize JSON array") {
     }
   }
 
-  SECTION("Line comments") {
+  SECTION("Trailing comments") {
     SECTION("Before opening bracket") {
       JsonError err = deserializeJson(doc, "//COMMENT\n\t[\"hello\"]");
       JsonArray& arr = doc.as<JsonArray>();

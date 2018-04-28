@@ -320,6 +320,128 @@ TEST_CASE("deserialize JSON object") {
     }
   }
 
+  SECTION("Trailing comments") {
+    SECTION("Before opening brace") {
+      JsonError err = deserializeJson(doc, "//COMMENT\n {\"hello\":\"world\"}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("After opening brace") {
+      JsonError err = deserializeJson(doc, "{//COMMENT\n\"hello\":\"world\"}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("Before colon") {
+      JsonError err = deserializeJson(doc, "{\"hello\"//COMMENT\n:\"world\"}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("After colon") {
+      JsonError err = deserializeJson(doc, "{\"hello\"://COMMENT\n\"world\"}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("Before closing brace") {
+      JsonError err = deserializeJson(doc, "{\"hello\":\"world\"//COMMENT\n}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("After closing brace") {
+      JsonError err = deserializeJson(doc, "{\"hello\":\"world\"}//COMMENT\n");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("Before comma") {
+      JsonError err = deserializeJson(
+          doc, "{\"hello\":\"world\"//COMMENT\n,\"answer\":42}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+      REQUIRE(obj["answer"] == 42);
+    }
+
+    SECTION("After comma") {
+      JsonError err = deserializeJson(
+          doc, "{\"hello\":\"world\",//COMMENT\n\"answer\":42}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+      REQUIRE(obj["answer"] == 42);
+    }
+  }
+
+  SECTION("Dangling slash") {
+    SECTION("Before opening brace") {
+      JsonError err = deserializeJson(doc, "/{\"hello\":\"world\"}");
+
+      REQUIRE(err == JsonError::InvalidInput);
+    }
+
+    SECTION("After opening brace") {
+      JsonError err = deserializeJson(doc, "{/\"hello\":\"world\"}");
+
+      REQUIRE(err == JsonError::InvalidInput);
+    }
+
+    SECTION("Before colon") {
+      JsonError err = deserializeJson(doc, "{\"hello\"/:\"world\"}");
+
+      REQUIRE(err == JsonError::InvalidInput);
+    }
+
+    SECTION("After colon") {
+      JsonError err = deserializeJson(doc, "{\"hello\":/\"world\"}");
+
+      REQUIRE(err == JsonError::InvalidInput);
+    }
+
+    SECTION("Before closing brace") {
+      JsonError err = deserializeJson(doc, "{\"hello\":\"world\"/}");
+
+      REQUIRE(err == JsonError::InvalidInput);
+    }
+
+    SECTION("After closing brace") {
+      JsonError err = deserializeJson(doc, "{\"hello\":\"world\"}/");
+
+      REQUIRE(err == JsonError::InvalidInput);
+    }
+
+    SECTION("Before comma") {
+      JsonError err =
+          deserializeJson(doc, "{\"hello\":\"world\"/,\"answer\":42}");
+
+      REQUIRE(err == JsonError::InvalidInput);
+    }
+
+    SECTION("After comma") {
+      JsonError err =
+          deserializeJson(doc, "{\"hello\":\"world\",/\"answer\":42}");
+
+      REQUIRE(err == JsonError::InvalidInput);
+    }
+  }
+
   SECTION("Should clear the JsonObject") {
     deserializeJson(doc, "{\"hello\":\"world\"}");
     deserializeJson(doc, "{}");
