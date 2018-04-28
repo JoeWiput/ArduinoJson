@@ -250,6 +250,76 @@ TEST_CASE("deserialize JSON object") {
     }
   }
 
+  SECTION("Block comments") {
+    SECTION("Before opening brace") {
+      JsonError err = deserializeJson(doc, "/*COMMENT*/ {\"hello\":\"world\"}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("After opening brace") {
+      JsonError err = deserializeJson(doc, "{/*COMMENT*/\"hello\":\"world\"}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("Before colon") {
+      JsonError err = deserializeJson(doc, "{\"hello\"/*COMMENT*/:\"world\"}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("After colon") {
+      JsonError err = deserializeJson(doc, "{\"hello\":/*COMMENT*/\"world\"}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("Before closing brace") {
+      JsonError err = deserializeJson(doc, "{\"hello\":\"world\"/*COMMENT*/}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("After closing brace") {
+      JsonError err = deserializeJson(doc, "{\"hello\":\"world\"}/*COMMENT*/");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+    }
+
+    SECTION("Before comma") {
+      JsonError err = deserializeJson(
+          doc, "{\"hello\":\"world\"/*COMMENT*/,\"answer\":42}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+      REQUIRE(obj["answer"] == 42);
+    }
+
+    SECTION("After comma") {
+      JsonError err = deserializeJson(
+          doc, "{\"hello\":\"world\",/*COMMENT*/\"answer\":42}");
+      JsonObject& obj = doc.as<JsonObject>();
+
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(obj["hello"] == "world");
+      REQUIRE(obj["answer"] == 42);
+    }
+  }
+
   SECTION("Should clear the JsonObject") {
     deserializeJson(doc, "{\"hello\":\"world\"}");
     deserializeJson(doc, "{}");
