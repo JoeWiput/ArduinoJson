@@ -100,4 +100,34 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
     REQUIRE(doc.is<JsonObject>());
     REQUIRE(doc.memoryUsage() == JSON_OBJECT_SIZE(0));
   }
+
+  SECTION("Empty input") {
+    JsonError err = deserializeJson(doc, "");
+
+    REQUIRE(err == JsonError::IncompleteInput);
+  }
+
+  SECTION("Just a trailing comment") {
+    JsonError err = deserializeJson(doc, "// comment");
+
+    REQUIRE(err == JsonError::IncompleteInput);
+  }
+
+  SECTION("Just a block comment") {
+    JsonError err = deserializeJson(doc, "/*comment*/");
+
+    REQUIRE(err == JsonError::IncompleteInput);
+  }
+
+  SECTION("Just a slash") {
+    JsonError err = deserializeJson(doc, "/");
+
+    REQUIRE(err == JsonError::InvalidInput);
+  }
+
+  SECTION("The beginning of a block comment") {
+    JsonError err = deserializeJson(doc, "/* comment");
+
+    REQUIRE(err == JsonError::IncompleteInput);
+  }
 }

@@ -7,11 +7,11 @@
 #include "../../JsonError.hpp"
 #include "../../JsonVariant.hpp"
 #include "../../Memory/JsonBuffer.hpp"
+#include "../../Reading/Reader.hpp"
 #include "../../Strings/StringWriter.hpp"
 #include "../../TypeTraits/IsConst.hpp"
 #include "../Encoding.hpp"
 #include "./Comments.hpp"
-#include "../../Reading/Reader.hpp"
 
 namespace ArduinoJson {
 namespace Internals {
@@ -26,9 +26,13 @@ class JsonDeserializer {
         _writer(writer),
         _nestingLimit(nestingLimit) {}
   JsonError parse(JsonVariant &variant) {
-    skipSpacesAndComments(_reader);
+    JsonError err = skipSpacesAndComments(_reader);
+    if (err) return err;
 
     switch (_reader.current()) {
+      case '\0':
+        return JsonError::IncompleteInput;
+
       case '[':
         return parseArray(variant);
 

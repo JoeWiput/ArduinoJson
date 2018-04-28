@@ -233,17 +233,17 @@ TEST_CASE("deserialize JSON array") {
 
     SECTION("/*/") {
       JsonError err = deserializeJson(doc, "[/*/\n]");
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
 
     SECTION("Unfinished comment") {
       JsonError err = deserializeJson(doc, "[/*COMMENT]");
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
 
     SECTION("Final slash missing") {
       JsonError err = deserializeJson(doc, "[/*COMMENT*]");
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
   }
 
@@ -311,7 +311,7 @@ TEST_CASE("deserialize JSON array") {
 
     SECTION("End document with comment") {
       JsonError err = deserializeJson(doc, "[//COMMENT");
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
   }
 
@@ -331,7 +331,7 @@ TEST_CASE("deserialize JSON array") {
     SECTION("The closing bracket is missing") {
       JsonError err = deserializeJson(doc, "[");
 
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
 
     SECTION("Escape sequences") {

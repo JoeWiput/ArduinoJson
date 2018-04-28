@@ -7,7 +7,7 @@
 namespace ArduinoJson {
 namespace Internals {
 template <typename TReader>
-void skipSpacesAndComments(TReader& reader) {
+JsonError skipSpacesAndComments(TReader& reader) {
   for (;;) {
     switch (reader.current()) {
       // spaces
@@ -27,7 +27,7 @@ void skipSpacesAndComments(TReader& reader) {
             // no need to skip '*'
             for (;;) {
               reader.move();
-              if (reader.current() == '\0') return;
+              if (reader.current() == '\0') return JsonError::IncompleteInput;
               if (reader.current() == '*' && reader.next() == '/') {
                 reader.move();  // skip '*'
                 reader.move();  // skip '/'
@@ -41,21 +41,21 @@ void skipSpacesAndComments(TReader& reader) {
             // not need to skip "//"
             for (;;) {
               reader.move();
-              if (reader.current() == '\0') return;
+              if (reader.current() == '\0') return JsonError::IncompleteInput;
               if (reader.current() == '\n') break;
             }
             break;
 
           // not a comment, just a '/'
           default:
-            return;
+            return JsonError::InvalidInput;
         }
         break;
 
       default:
-        return;
+        return JsonError::Ok;
     }
   }
 }
-}
-}
+}  // namespace Internals
+}  // namespace ArduinoJson
