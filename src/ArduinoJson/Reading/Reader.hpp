@@ -58,5 +58,16 @@ struct Reader<const __FlashStringHelper*, void> {
   typedef FlashStringReader<TChar> type;
 };
 #endif
+
+template <typename TString>
+typename Reader<TString>::type makeReader(TString& input) {
+  return typename Reader<TString>::type(input);
+}
+
+template <typename TChar>
+typename Reader<TChar*>::type makeReader(TChar* input) {
+  return typename Reader<TChar*>::type(input);
+}
+
 }  // namespace Internals
 }  // namespace ArduinoJson

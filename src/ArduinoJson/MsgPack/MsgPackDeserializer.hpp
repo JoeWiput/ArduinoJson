@@ -6,12 +6,12 @@
 
 #include "../JsonVariant.hpp"
 #include "../Memory/JsonBuffer.hpp"
-#include "../Strings/StringWriter.hpp"
+#include "../Reading/Reader.hpp"
 #include "../TypeTraits/IsConst.hpp"
+#include "../Writing/Writer.hpp"
 #include "./MsgPackError.hpp"
 #include "./endianess.hpp"
 #include "./ieee754.hpp"
-#include "../Reading/Reader.hpp"
 
 namespace ArduinoJson {
 namespace Internals {

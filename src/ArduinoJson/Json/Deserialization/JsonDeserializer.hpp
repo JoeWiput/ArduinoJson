@@ -8,7 +8,6 @@
 #include "../../JsonVariant.hpp"
 #include "../../Memory/JsonBuffer.hpp"
 #include "../../Reading/Reader.hpp"
-#include "../../Strings/StringWriter.hpp"
 #include "../../TypeTraits/IsConst.hpp"
 #include "../Encoding.hpp"
 #include "./Comments.hpp"
@@ -212,37 +211,15 @@ class JsonDeserializer {
   TReader _reader;
   TWriter _writer;
   uint8_t _nestingLimit;
-};  // namespace Internals
-
-template <typename TJsonBuffer, typename TString, typename Enable = void>
-struct JsonParserBuilder {
-  typedef typename Reader<TString>::type InputReader;
-  typedef JsonDeserializer<InputReader, TJsonBuffer &> TParser;
-
-  static TParser makeParser(TJsonBuffer *buffer, TString &json,
-                            uint8_t nestingLimit) {
-    return TParser(buffer, InputReader(json), *buffer, nestingLimit);
-  }
 };
 
-template <typename TJsonBuffer, typename TChar>
-struct JsonParserBuilder<TJsonBuffer, TChar *,
-                         typename EnableIf<!IsConst<TChar>::value>::type> {
-  typedef typename Reader<TChar *>::type TReader;
-  typedef StringWriter<TChar> TWriter;
-  typedef JsonDeserializer<TReader, TWriter> TParser;
-
-  static TParser makeParser(TJsonBuffer *buffer, TChar *json,
-                            uint8_t nestingLimit) {
-    return TParser(buffer, TReader(json), TWriter(json), nestingLimit);
-  }
-};
-
-template <typename TJsonBuffer, typename TString>
-inline typename JsonParserBuilder<TJsonBuffer, TString>::TParser makeParser(
-    TJsonBuffer *buffer, TString &json, uint8_t nestingLimit) {
-  return JsonParserBuilder<TJsonBuffer, TString>::makeParser(buffer, json,
-                                                             nestingLimit);
+template <typename TJsonBuffer, typename TReader, typename TWriter>
+JsonDeserializer<TReader, TWriter> makeJsonDeserializer(TJsonBuffer *buffer,
+                                                        TReader reader,
+                                                        TWriter writer,
+                                                        uint8_t nestingLimit) {
+  return JsonDeserializer<TReader, TWriter>(buffer, reader, writer,
+                                            nestingLimit);
 }
 }  // namespace Internals
 }  // namespace ArduinoJson
