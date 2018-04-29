@@ -259,37 +259,11 @@ class MsgPackDeserializer {
   uint8_t _nestingLimit;
 };
 
-template <typename TJsonBuffer, typename TString, typename Enable = void>
-struct MsgPackDeserializerBuilder {
-  typedef typename Reader<TString>::type InputReader;
-  typedef MsgPackDeserializer<InputReader, TJsonBuffer &> TParser;
-
-  static TParser makeMsgPackDeserializer(TJsonBuffer *buffer, TString &json,
-                                         uint8_t nestingLimit) {
-    return TParser(buffer, InputReader(json), *buffer, nestingLimit);
-  }
-};
-
-template <typename TJsonBuffer, typename TChar>
-struct MsgPackDeserializerBuilder<
-    TJsonBuffer, TChar *, typename EnableIf<!IsConst<TChar>::value>::type> {
-  typedef typename Reader<TChar *>::type TReader;
-  typedef StringWriter<TChar> TWriter;
-  typedef MsgPackDeserializer<TReader, TWriter> TParser;
-
-  static TParser makeMsgPackDeserializer(TJsonBuffer *buffer, TChar *json,
-                                         uint8_t nestingLimit) {
-    return TParser(buffer, TReader(json), TWriter(json), nestingLimit);
-  }
-};
-
-template <typename TJsonBuffer, typename TString>
-inline typename MsgPackDeserializerBuilder<TJsonBuffer, TString>::TParser
-makeMsgPackDeserializer(TJsonBuffer *buffer, TString &json,
-                        uint8_t nestingLimit) {
-  return MsgPackDeserializerBuilder<
-      TJsonBuffer, TString>::makeMsgPackDeserializer(buffer, json,
-                                                     nestingLimit);
+template <typename TJsonBuffer, typename TReader, typename TWriter>
+MsgPackDeserializer<TReader, TWriter> makeMsgPackDeserializer(
+    TJsonBuffer *buffer, TReader reader, TWriter writer, uint8_t nestingLimit) {
+  return MsgPackDeserializer<TReader, TWriter>(buffer, reader, writer,
+                                               nestingLimit);
 }
 }  // namespace Internals
 }  // namespace ArduinoJson
