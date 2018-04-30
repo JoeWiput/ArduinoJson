@@ -55,7 +55,7 @@ struct Reader<
 #if ARDUINOJSON_ENABLE_PROGMEM
 template <>
 struct Reader<const __FlashStringHelper*, void> {
-  typedef FlashStringReader<TChar> type;
+  typedef FlashStringReader type;
 };
 #endif
 

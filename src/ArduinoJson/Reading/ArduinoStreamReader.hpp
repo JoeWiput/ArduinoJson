@@ -36,4 +36,7 @@ struct ArduinoStreamReader {
   }
 };
 
+}  // namespace Internals
+}  // namespace ArduinoJson
+
 #endif
