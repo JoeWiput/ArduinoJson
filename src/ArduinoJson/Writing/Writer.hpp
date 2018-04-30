@@ -17,7 +17,7 @@ class JsonBufferWriter {
   typedef typename TJsonBuffer::String String;
 
   String startString() {
-    return _jb->template startString();
+    return _jb->startString();
   }
 
  private:

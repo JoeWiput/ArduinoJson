@@ -39,7 +39,7 @@ struct Reader<
     typename EnableIf<IsBaseOf<
         Stream, typename RemoveReference<TStream>::type>::value>::type> {
   typedef ArduinoStreamReader type;
-}
+};
 #endif
 
 #if ARDUINOJSON_ENABLE_STD_STREAM
