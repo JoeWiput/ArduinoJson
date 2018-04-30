@@ -13,7 +13,9 @@
 namespace ArduinoJson {
 namespace Internals {
 template <typename TInput, typename Enable = void>
-struct Reader {};
+struct Reader {
+  typedef IteratorReader<const char*> type;
+};
 
 template <typename T, typename R = void>
 struct Enable {

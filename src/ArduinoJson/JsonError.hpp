@@ -4,6 +4,10 @@
 
 #pragma once
 
+#if ARDUINOJSON_ENABLE_STD_STREAM
+#include <ostream>
+#endif
+
 namespace ArduinoJson {
 
 class JsonError {
