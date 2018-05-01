@@ -164,13 +164,13 @@ TEST_CASE("deserialize JSON array") {
     SECTION("Closing single quotes missing") {
       JsonError err = deserializeJson(doc, "[\"]");
 
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
 
     SECTION("Closing double quotes missing") {
       JsonError err = deserializeJson(doc, "[\']");
 
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
   }
 
@@ -316,20 +316,14 @@ TEST_CASE("deserialize JSON array") {
   }
 
   SECTION("Misc") {
-    SECTION("Garbage") {
-      JsonError err = deserializeJson(doc, "%*$£¤");
-
-      REQUIRE(err == JsonError::InvalidInput);
-    }
-
-    SECTION("The opening bracket is missing") {
-      JsonError err = deserializeJson(doc, "]");
-
-      REQUIRE(err == JsonError::InvalidInput);
-    }
-
-    SECTION("The closing bracket is missing") {
+    SECTION("Just an opening bracket") {
       JsonError err = deserializeJson(doc, "[");
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("Missing closing backet") {
+      JsonError err = deserializeJson(doc, "[42");
 
       REQUIRE(err == JsonError::IncompleteInput);
     }

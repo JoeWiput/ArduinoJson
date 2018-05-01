@@ -14,9 +14,11 @@ namespace Internals {
 struct ArduinoStreamReader {
   Stream& _stream;
   char _current;
+  bool _ended;
 
  public:
-  ArduinoStreamReader(Stream& stream) : _stream(stream), _current(0) {}
+  ArduinoStreamReader(Stream& stream)
+      : _stream(stream), _current(0), _ended(false) {}
 
   void move() {
     _current = 0;
@@ -27,11 +29,15 @@ struct ArduinoStreamReader {
     return _current;
   }
 
+  bool ended() const {
+    return _ended;
+  }
+
  private:
   char read() {
     // don't use _stream.read() as it ignores the timeout
     char c = 0;
-    _stream.readBytes(&c, 1);
+    _ended = _stream.readBytes(&c, 1) == 0;
     return c;
   }
 };

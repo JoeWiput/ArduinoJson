@@ -23,6 +23,10 @@ class ZeroTerminatedReader {
   char current() const {
     return char(*_ptr);
   }
+
+  bool ended() const {
+    return *_ptr == 0;
+  }
 };
 }  // namespace Internals
 }  // namespace ArduinoJson

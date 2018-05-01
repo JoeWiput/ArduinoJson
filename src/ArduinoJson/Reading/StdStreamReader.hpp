@@ -27,6 +27,10 @@ class StdStreamReader {
     return _current;
   }
 
+  bool ended() {
+    return _stream.eof();
+  }
+
  private:
   StdStreamReader& operator=(const StdStreamReader&);  // Visual Studio C4512
 

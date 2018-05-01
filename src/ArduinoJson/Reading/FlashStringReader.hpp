@@ -22,6 +22,10 @@ class FlashStringReader {
   char current() const {
     return pgm_read_byte_near(_ptr);
   }
+
+  bool ended() const {
+    return current() == 0;
+  }
 };
 }  // namespace Internals
 }  // namespace ArduinoJson

@@ -213,16 +213,16 @@ TEST_CASE("deserialize JSON object") {
   }
 
   SECTION("Misc") {
-    SECTION("The opening brace is missing") {
-      JsonError err = deserializeJson(doc, "}");
+    SECTION("Just an opening brace") {
+      JsonError err = deserializeJson(doc, "{");
 
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
 
-    SECTION("The closing brace is missing") {
+    SECTION("Missing closing brace") {
       JsonError err = deserializeJson(doc, "{\"hello\":\"world\"");
 
-      REQUIRE(err == JsonError::InvalidInput);
+      REQUIRE(err == JsonError::IncompleteInput);
     }
 
     SECTION("A quoted key without value") {

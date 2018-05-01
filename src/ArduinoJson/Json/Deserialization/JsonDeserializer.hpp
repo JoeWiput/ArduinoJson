@@ -65,6 +65,7 @@ class JsonDeserializer {
     // Skip spaces
     JsonError err = skipSpacesAndComments(_reader);
     if (err) return err;
+    if (_reader.ended()) return JsonError::IncompleteInput;
 
     // Empty array?
     if (eat(']')) return JsonError::Ok;
@@ -84,6 +85,7 @@ class JsonDeserializer {
       if (err) return err;
 
       // 3 - More values?
+      if (_reader.ended()) return JsonError::IncompleteInput;
       if (eat(']')) return JsonError::Ok;
       if (!eat(',')) return JsonError::InvalidInput;
     }
@@ -102,6 +104,7 @@ class JsonDeserializer {
     // Skip spaces
     JsonError err = skipSpacesAndComments(_reader);
     if (err) return err;
+    if (_reader.ended()) return JsonError::IncompleteInput;
 
     // Empty object?
     if (eat('}')) return JsonError::Ok;
@@ -133,6 +136,7 @@ class JsonDeserializer {
       if (err) return err;
 
       // More keys/values?
+      if (_reader.ended()) return JsonError::IncompleteInput;
       if (eat('}')) return JsonError::Ok;
       if (!eat(',')) return JsonError::InvalidInput;
 

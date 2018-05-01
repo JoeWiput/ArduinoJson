@@ -10,20 +10,6 @@ using namespace Catch::Matchers;
 TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
   DynamicJsonDocument doc;
 
-  SECTION("EmptyObject") {
-    JsonError err = deserializeJson(doc, "{}");
-
-    REQUIRE(err == JsonError::Ok);
-    REQUIRE(doc.is<JsonObject>());
-  }
-
-  SECTION("EmptyArray") {
-    JsonError err = deserializeJson(doc, "[]");
-
-    REQUIRE(err == JsonError::Ok);
-    REQUIRE(doc.is<JsonArray>());
-  }
-
   SECTION("Integer") {
     JsonError err = deserializeJson(doc, "-42");
 
@@ -72,12 +58,6 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
     REQUIRE(err == JsonError::Ok);
     REQUIRE(doc.is<bool>());
     REQUIRE(doc.as<bool>() == false);
-  }
-
-  SECTION("OpenBrace") {
-    JsonError err = deserializeJson(doc, "{");
-
-    REQUIRE(err != JsonError::Ok);
   }
 
   SECTION("Incomplete string") {
@@ -129,5 +109,11 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
     JsonError err = deserializeJson(doc, "/* comment");
 
     REQUIRE(err == JsonError::IncompleteInput);
+  }
+
+  SECTION("Garbage") {
+    JsonError err = deserializeJson(doc, "%*$£¤");
+
+    REQUIRE(err == JsonError::InvalidInput);
   }
 }
