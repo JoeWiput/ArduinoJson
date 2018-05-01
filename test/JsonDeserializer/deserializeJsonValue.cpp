@@ -10,6 +10,18 @@ using namespace Catch::Matchers;
 TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
   DynamicJsonDocument doc;
 
+  SECTION("null char*") {
+    JsonError err = deserializeJson(doc, static_cast<char*>(0));
+
+    REQUIRE(err != JsonError::Ok);
+  }
+
+  SECTION("null const char*") {
+    JsonError err = deserializeJson(doc, static_cast<const char*>(0));
+
+    REQUIRE(err != JsonError::Ok);
+  }
+
   SECTION("Integer") {
     JsonError err = deserializeJson(doc, "-42");
 
