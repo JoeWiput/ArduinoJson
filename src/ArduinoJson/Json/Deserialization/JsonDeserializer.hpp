@@ -168,8 +168,8 @@ class JsonDeserializer {
       _reader.move();
       char stopChar = c;
       for (;;) {
+        if (_reader.ended()) return JsonError::IncompleteInput;
         c = _reader.current();
-        if (c == '\0') break;
         _reader.move();
 
         if (c == stopChar) break;

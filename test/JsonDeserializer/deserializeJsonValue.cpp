@@ -60,12 +60,16 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
     REQUIRE(doc.as<bool>() == false);
   }
 
-  SECTION("Incomplete string") {
+  SECTION("Double quoted string missing the closing quote") {
     JsonError err = deserializeJson(doc, "\"hello");
 
-    REQUIRE(err == JsonError::Ok);
-    REQUIRE(doc.is<char*>());
-    REQUIRE_THAT(doc.as<char*>(), Equals("hello"));
+    REQUIRE(err == JsonError::IncompleteInput);
+  }
+
+  SECTION("Single quoted string missing the closing quote") {
+    JsonError err = deserializeJson(doc, "'hello");
+
+    REQUIRE(err == JsonError::IncompleteInput);
   }
 
   SECTION("Unterminated escape sequence") {
