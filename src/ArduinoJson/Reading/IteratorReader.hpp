@@ -13,10 +13,6 @@ class IteratorReader {
   TIterator const _end;
 
  public:
-  template <typename TIterable>
-  IteratorReader(const TIterable& input)
-      : _ptr(input.begin()), _end(input.end()) {}
-
   IteratorReader(TIterator begin, TIterator end) : _ptr(begin), _end(end) {}
 
   bool ended() {

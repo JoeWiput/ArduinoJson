@@ -15,6 +15,11 @@ namespace Internals {
 template <typename TInput, typename Enable = void>
 struct Reader {
   typedef IteratorReader<const char*> type;
+
+  static type create(const TInput& input) {
+    // Arduino String class has no begin()/end() member until version 1.7
+    return type(input.c_str(), input.c_str() + input.size());
+  }
 };
 
 template <typename T, typename R = void>
@@ -26,11 +31,18 @@ template <typename TIterable>
 struct Reader<TIterable,
               typename Enable<typename TIterable::const_iterator>::type> {
   typedef IteratorReader<typename TIterable::const_iterator> type;
+  static type create(const TIterable& input) {
+    return type(input.begin(), input.end());
+  }
 };
 
 template <typename TChar>
 struct Reader<TChar*, typename EnableIf<IsChar<TChar>::value>::type> {
   typedef ZeroTerminatedReader<TChar> type;
+
+  static type create(const TChar* input) {
+    return type(input);
+  }
 };
 
 #if ARDUINOJSON_ENABLE_ARDUINO_STREAM
@@ -41,6 +53,10 @@ struct Reader<
     typename EnableIf<IsBaseOf<
         Stream, typename RemoveReference<TStream>::type>::value>::type> {
   typedef ArduinoStreamReader type;
+
+  static type create(TStream& input) {
+    return type(input);
+  }
 };
 #endif
 
@@ -51,6 +67,10 @@ struct Reader<
     typename EnableIf<IsBaseOf<
         std::istream, typename RemoveReference<TStream>::type>::value>::type> {
   typedef StdStreamReader type;
+
+  static type create(TStream& input) {
+    return type(input);
+  }
 };
 #endif
 
@@ -58,17 +78,21 @@ struct Reader<
 template <>
 struct Reader<const __FlashStringHelper*, void> {
   typedef FlashStringReader type;
+
+  static type create(const __FlashStringHelper* input) {
+    return type(input);
+  }
 };
 #endif
 
 template <typename TString>
 typename Reader<TString>::type makeReader(TString& input) {
-  return typename Reader<TString>::type(input);
+  return Reader<TString>::create(input);
 }
 
 template <typename TChar>
 typename Reader<TChar*>::type makeReader(TChar* input) {
-  return typename Reader<TChar*>::type(input);
+  return Reader<TChar*>::create(input);
 }
 
 }  // namespace Internals
