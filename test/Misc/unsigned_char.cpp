@@ -9,23 +9,23 @@
 #define CONFLICTS_WITH_BUILTIN_OPERATOR
 #endif
 
-TEST_CASE("unsigned char string") {
-  SECTION("JsonBuffer::parseArray") {
-    unsigned char json[] = "[42]";
-
-    StaticJsonDocument<JSON_ARRAY_SIZE(1)> doc;
-    JsonError err = deserializeJson(doc, json);
-
-    REQUIRE(err == JsonError::Ok);
-  }
-
-  SECTION("JsonBuffer::parseObject") {
+TEST_CASE("unsigned char[]") {
+  SECTION("deserializeJson()") {
     unsigned char json[] = "{\"a\":42}";
 
     StaticJsonDocument<JSON_OBJECT_SIZE(1)> doc;
     JsonError err = deserializeJson(doc, json);
 
     REQUIRE(err == JsonError::Ok);
+  }
+
+  SECTION("deserializeMsgPack()") {
+    unsigned char json[] = "\xDE\x00\x01\xA5Hello\xA5world";
+
+    StaticJsonDocument<JSON_OBJECT_SIZE(2)> doc;
+    MsgPackError err = deserializeMsgPack(doc, json);
+
+    REQUIRE(err == MsgPackError::Ok);
   }
 
   SECTION("JsonVariant constructor") {

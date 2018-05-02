@@ -23,11 +23,11 @@ deserializeMsgPack(TDocument &doc, const TString &input) {
       .parse(doc.template to<JsonVariant>());
 }
 //
-// MsgPackError deserializeMsgPack(TDocument& doc, TString input);
+// MsgPackError deserializeMsgPack(TDocument& doc, TChar* input);
 // TDocument = DynamicJsonDocument, StaticJsonDocument
-// TString = char*, const char*, const FlashStringHelper*
-template <typename TDocument, typename TString>
-MsgPackError deserializeMsgPack(TDocument &doc, TString *input) {
+// TChar* = char*, const char*, const FlashStringHelper*
+template <typename TDocument, typename TChar>
+MsgPackError deserializeMsgPack(TDocument &doc, TChar *input) {
   using namespace Internals;
   return makeMsgPackDeserializer(&doc.buffer(), makeReader(input),
                                  makeWriter(doc.buffer(), input),

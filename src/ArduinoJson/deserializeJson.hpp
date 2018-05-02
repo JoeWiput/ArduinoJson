@@ -22,11 +22,11 @@ deserializeJson(TDocument &doc, const TString &input) {
       .parse(doc.template to<JsonVariant>());
 }
 //
-// JsonError deserializeJson(TDocument& doc, TString input);
+// JsonError deserializeJson(TDocument& doc, TChar* input);
 // TDocument = DynamicJsonDocument, StaticJsonDocument
-// TString = char*, const char*, const FlashStringHelper*
-template <typename TDocument, typename TString>
-JsonError deserializeJson(TDocument &doc, TString *input) {
+// TChar* = char*, const char*, const FlashStringHelper*
+template <typename TDocument, typename TChar>
+JsonError deserializeJson(TDocument &doc, TChar *input) {
   using namespace Internals;
   return makeJsonDeserializer(&doc.buffer(), makeReader(input),
                               makeWriter(doc.buffer(), input), doc.nestingLimit)
