@@ -58,7 +58,7 @@ TEST_CASE("std::string") {
     }
 
     SECTION("should duplicate content") {
-      std::string input("\x81\xA5hello");
+      std::string input("\x91\xA5hello");
 
       MsgPackError err = deserializeMsgPack(doc, input);
       eraseString(input);
