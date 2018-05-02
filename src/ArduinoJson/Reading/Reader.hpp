@@ -18,7 +18,8 @@ struct Reader {
 
   static type create(const TInput& input) {
     // Arduino String class has no begin()/end() member until version 1.7
-    return type(input.c_str(), input.c_str() + input.size());
+    // and it has no size() function
+    return type(input.c_str(), input.c_str() + input.length());
   }
 };
 
