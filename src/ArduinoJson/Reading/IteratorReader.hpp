@@ -9,8 +9,7 @@ namespace Internals {
 
 template <typename TIterator>
 class IteratorReader {
-  TIterator _ptr;
-  TIterator const _end;
+  TIterator _ptr, _end;
 
  public:
   IteratorReader(TIterator begin, TIterator end) : _ptr(begin), _end(end) {}
