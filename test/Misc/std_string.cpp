@@ -11,16 +11,62 @@ static void eraseString(std::string &str) {
 }
 
 TEST_CASE("std::string") {
-  SECTION("deserializeJson duplicates content") {
-    std::string json("[\"hello\"]");
-
+  SECTION("deserializeJson()") {
     DynamicJsonDocument doc;
-    JsonError err = deserializeJson(doc, json);
-    eraseString(json);
 
-    JsonArray &array = doc.as<JsonArray>();
-    REQUIRE(err == JsonError::Ok);
-    REQUIRE(std::string("hello") == array[0]);
+    SECTION("should accept const string") {
+      const std::string input("[42]");
+
+      JsonError err = deserializeJson(doc, input);
+
+      REQUIRE(err == JsonError::Ok);
+    }
+
+    SECTION("should accept temporary string") {
+      JsonError err = deserializeJson(doc, std::string("[42]"));
+
+      REQUIRE(err == JsonError::Ok);
+    }
+
+    SECTION("should duplicate content") {
+      std::string input("[\"hello\"]");
+
+      JsonError err = deserializeJson(doc, input);
+      eraseString(input);
+
+      JsonArray &array = doc.as<JsonArray>();
+      REQUIRE(err == JsonError::Ok);
+      REQUIRE(std::string("hello") == array[0]);
+    }
+  }
+
+  SECTION("deserializeMsgPack()") {
+    DynamicJsonDocument doc;
+
+    SECTION("should accept const string") {
+      const std::string input("\x92\x01\x02");
+
+      MsgPackError err = deserializeMsgPack(doc, input);
+
+      REQUIRE(err == MsgPackError::Ok);
+    }
+
+    SECTION("should accept temporary string") {
+      MsgPackError err = deserializeMsgPack(doc, std::string("\x92\x01\x02"));
+
+      REQUIRE(err == MsgPackError::Ok);
+    }
+
+    SECTION("should duplicate content") {
+      std::string input("\x81\xA5hello");
+
+      MsgPackError err = deserializeMsgPack(doc, input);
+      eraseString(input);
+
+      JsonArray &array = doc.as<JsonArray>();
+      REQUIRE(err == MsgPackError::Ok);
+      REQUIRE(std::string("hello") == array[0]);
+    }
   }
 
   SECTION("JsonArray") {
@@ -69,17 +115,6 @@ TEST_CASE("std::string") {
 
   SECTION("JsonObject") {
     DynamicJsonDocument doc;
-
-    SECTION("deserializeJson()") {
-      std::string json("{\"hello\":\"world\"}");
-
-      JsonError err = deserializeJson(doc, json);
-      JsonObject &obj = doc.as<JsonObject>();
-      eraseString(json);
-
-      REQUIRE(err == JsonError::Ok);
-      REQUIRE(std::string("world") == obj["hello"]);
-    }
 
     SECTION("operator[]") {
       char json[] = "{\"key\":\"value\"}";
