@@ -80,23 +80,6 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
     REQUIRE(doc.as<bool>() == false);
   }
 
-  SECTION("Double quoted string missing the closing quote") {
-    JsonError err = deserializeJson(doc, "\"hello");
-
-    REQUIRE(err == JsonError::IncompleteInput);
-  }
-
-  SECTION("Single quoted string missing the closing quote") {
-    JsonError err = deserializeJson(doc, "'hello");
-
-    REQUIRE(err == JsonError::IncompleteInput);
-  }
-
-  SECTION("Unterminated escape sequence") {
-    JsonError err = deserializeJson(doc, "\"\\\0\"");
-    REQUIRE(err == JsonError::InvalidInput);
-  }
-
   SECTION("Should clear the JsonVariant") {
     deserializeJson(doc, "[1,2,3]");
     deserializeJson(doc, "{}");
@@ -129,15 +112,61 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
     REQUIRE(err == JsonError::InvalidInput);
   }
 
-  SECTION("The beginning of a block comment") {
-    JsonError err = deserializeJson(doc, "/* comment");
-
-    REQUIRE(err == JsonError::IncompleteInput);
-  }
-
   SECTION("Garbage") {
     JsonError err = deserializeJson(doc, "%*$£¤");
 
     REQUIRE(err == JsonError::InvalidInput);
+  }
+
+  SECTION("Premature null-terminator") {
+    SECTION("In escape sequence") {
+      JsonError err = deserializeJson(doc, "\"\\");
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("In block comment") {
+      JsonError err = deserializeJson(doc, "/* comment");
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("In double quoted string") {
+      JsonError err = deserializeJson(doc, "\"hello");
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("In single quoted string") {
+      JsonError err = deserializeJson(doc, "'hello");
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+  }
+
+  SECTION("Premature end of input") {
+    SECTION("In escape sequence") {
+      JsonError err = deserializeJson(doc, "\"\\n\"", 2);
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("In block comment") {
+      JsonError err = deserializeJson(doc, "/* comment */", 10);
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("In double quoted string") {
+      JsonError err = deserializeJson(doc, "\"hello\"", 6);
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("In single quoted string") {
+      JsonError err = deserializeJson(doc, "'hello'", 6);
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
   }
 }

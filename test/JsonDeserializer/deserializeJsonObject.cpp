@@ -212,19 +212,39 @@ TEST_CASE("deserialize JSON object") {
     }
   }
 
-  SECTION("Misc") {
-    SECTION("Just an opening brace") {
+  SECTION("Premature null terminator") {
+    SECTION("After opening brace") {
       JsonError err = deserializeJson(doc, "{");
 
       REQUIRE(err == JsonError::IncompleteInput);
     }
 
-    SECTION("Missing closing brace") {
+    SECTION("After key") {
+      JsonError err = deserializeJson(doc, "{\"hello\"");
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("After colon") {
+      JsonError err = deserializeJson(doc, "{\"hello\":");
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("After value") {
       JsonError err = deserializeJson(doc, "{\"hello\":\"world\"");
 
       REQUIRE(err == JsonError::IncompleteInput);
     }
 
+    SECTION("After comma") {
+      JsonError err = deserializeJson(doc, "{\"hello\":\"world\",");
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+  }
+
+  SECTION("Misc") {
     SECTION("A quoted key without value") {
       JsonError err = deserializeJson(doc, "{\"key\"}");
 

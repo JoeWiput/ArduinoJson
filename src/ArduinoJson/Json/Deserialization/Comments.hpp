@@ -9,7 +9,11 @@ namespace Internals {
 template <typename TReader>
 JsonError skipSpacesAndComments(TReader& reader) {
   for (;;) {
+    if (reader.ended()) return JsonError::IncompleteInput;
     switch (reader.current()) {
+      case '\0':
+        return JsonError::IncompleteInput;
+
       // spaces
       case ' ':
       case '\t':
@@ -28,6 +32,7 @@ JsonError skipSpacesAndComments(TReader& reader) {
             bool wasStar = false;
             for (;;) {
               if (reader.current() == '\0') return JsonError::IncompleteInput;
+              if (reader.ended()) return JsonError::IncompleteInput;
               if (reader.current() == '/' && wasStar) {
                 reader.move();
                 break;
@@ -44,6 +49,7 @@ JsonError skipSpacesAndComments(TReader& reader) {
             for (;;) {
               reader.move();
               if (reader.current() == '\0') return JsonError::IncompleteInput;
+              if (reader.ended()) return JsonError::IncompleteInput;
               if (reader.current() == '\n') break;
             }
             break;

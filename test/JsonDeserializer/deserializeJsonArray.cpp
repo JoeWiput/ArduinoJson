@@ -323,21 +323,35 @@ TEST_CASE("deserialize JSON array") {
     }
 
     SECTION("After value") {
-      JsonError err = deserializeJson(doc, "[42");
+      JsonError err = deserializeJson(doc, "[1");
 
       REQUIRE(err == JsonError::IncompleteInput);
     }
 
     SECTION("After comma") {
-      JsonError err = deserializeJson(doc, "[42,");
+      JsonError err = deserializeJson(doc, "[1,");
 
       REQUIRE(err == JsonError::IncompleteInput);
     }
   }
 
   SECTION("Premature end of input") {
+    const char* input = "[1,2]";
+
     SECTION("After opening bracket") {
-      JsonError err = deserializeJson(doc, "[]", 1);
+      JsonError err = deserializeJson(doc, input, 1);
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("After value") {
+      JsonError err = deserializeJson(doc, input, 2);
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+
+    SECTION("After comma") {
+      JsonError err = deserializeJson(doc, input, 3);
 
       REQUIRE(err == JsonError::IncompleteInput);
     }

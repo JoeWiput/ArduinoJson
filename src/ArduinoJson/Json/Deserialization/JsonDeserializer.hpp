@@ -29,9 +29,6 @@ class JsonDeserializer {
     if (err) return err;
 
     switch (_reader.current()) {
-      case '\0':
-        return JsonError::IncompleteInput;
-
       case '[':
         return parseArray(variant);
 
@@ -69,7 +66,6 @@ class JsonDeserializer {
     // Skip spaces
     JsonError err = skipSpacesAndComments(_reader);
     if (err) return err;
-    if (isEnded()) return JsonError::IncompleteInput;
 
     // Empty array?
     if (eat(']')) return JsonError::Ok;
@@ -89,7 +85,6 @@ class JsonDeserializer {
       if (err) return err;
 
       // 3 - More values?
-      if (isEnded()) return JsonError::IncompleteInput;
       if (eat(']')) return JsonError::Ok;
       if (!eat(',')) return JsonError::InvalidInput;
     }
@@ -108,7 +103,6 @@ class JsonDeserializer {
     // Skip spaces
     JsonError err = skipSpacesAndComments(_reader);
     if (err) return err;
-    if (isEnded()) return JsonError::IncompleteInput;
 
     // Empty object?
     if (eat('}')) return JsonError::Ok;
@@ -140,7 +134,6 @@ class JsonDeserializer {
       if (err) return err;
 
       // More keys/values?
-      if (isEnded()) return JsonError::IncompleteInput;
       if (eat('}')) return JsonError::Ok;
       if (!eat(',')) return JsonError::InvalidInput;
 
@@ -175,11 +168,12 @@ class JsonDeserializer {
       for (;;) {
         c = _reader.current();
         _reader.move();
-        if (c == '\0') return JsonError::IncompleteInput;
-
         if (c == stopChar) break;
 
+        if (isEnded()) return JsonError::IncompleteInput;
+
         if (c == '\\') {
+          if (isEnded()) return JsonError::IncompleteInput;
           // replace char
           c = Encoding::unescapeChar(_reader.current());
           if (c == '\0') return JsonError::InvalidInput;
