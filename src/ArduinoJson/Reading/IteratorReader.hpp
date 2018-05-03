@@ -15,7 +15,7 @@ class IteratorReader {
   explicit IteratorReader(TIterator begin, TIterator end)
       : _ptr(begin), _end(end) {}
 
-  bool ended() {
+  bool ended() const {
     return _ptr == _end;
   }
 

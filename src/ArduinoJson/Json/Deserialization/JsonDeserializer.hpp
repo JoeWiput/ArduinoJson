@@ -52,6 +52,10 @@ class JsonDeserializer {
     return true;
   }
 
+  bool isEnded() {
+    return _reader.current() == 0 || _reader.ended();
+  }
+
   JsonError parseArray(JsonVariant &variant) {
     if (_nestingLimit == 0) return JsonError::TooDeep;
 
@@ -65,7 +69,7 @@ class JsonDeserializer {
     // Skip spaces
     JsonError err = skipSpacesAndComments(_reader);
     if (err) return err;
-    if (_reader.ended()) return JsonError::IncompleteInput;
+    if (isEnded()) return JsonError::IncompleteInput;
 
     // Empty array?
     if (eat(']')) return JsonError::Ok;
@@ -85,7 +89,7 @@ class JsonDeserializer {
       if (err) return err;
 
       // 3 - More values?
-      if (_reader.ended()) return JsonError::IncompleteInput;
+      if (isEnded()) return JsonError::IncompleteInput;
       if (eat(']')) return JsonError::Ok;
       if (!eat(',')) return JsonError::InvalidInput;
     }
@@ -104,7 +108,7 @@ class JsonDeserializer {
     // Skip spaces
     JsonError err = skipSpacesAndComments(_reader);
     if (err) return err;
-    if (_reader.ended()) return JsonError::IncompleteInput;
+    if (isEnded()) return JsonError::IncompleteInput;
 
     // Empty object?
     if (eat('}')) return JsonError::Ok;
@@ -136,7 +140,7 @@ class JsonDeserializer {
       if (err) return err;
 
       // More keys/values?
-      if (_reader.ended()) return JsonError::IncompleteInput;
+      if (isEnded()) return JsonError::IncompleteInput;
       if (eat('}')) return JsonError::Ok;
       if (!eat(',')) return JsonError::InvalidInput;
 
@@ -163,14 +167,15 @@ class JsonDeserializer {
     typename RemoveReference<TWriter>::type::String str = _writer.startString();
 
     char c = _reader.current();
+    if (c == '\0') return JsonError::IncompleteInput;
 
     if (isQuote(c)) {  // quotes
       _reader.move();
       char stopChar = c;
       for (;;) {
-        if (_reader.ended()) return JsonError::IncompleteInput;
         c = _reader.current();
         _reader.move();
+        if (c == '\0') return JsonError::IncompleteInput;
 
         if (c == stopChar) break;
 

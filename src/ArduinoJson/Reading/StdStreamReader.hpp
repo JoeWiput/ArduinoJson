@@ -28,7 +28,7 @@ class StdStreamReader {
     return _current;
   }
 
-  bool ended() {
+  bool ended() const {
     return _stream.eof();
   }
 
