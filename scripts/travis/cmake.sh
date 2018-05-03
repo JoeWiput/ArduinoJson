@@ -14,9 +14,6 @@ curl -sS $URL | tar xz -C /tmp --strip 1
 if [ -n "$GCC" ]; then
 	export CC="gcc-$GCC"
 	export CXX="g++-$GCC"
-
-	# workaround for https://stackoverflow.com/q/50024731/1164966
-	export CXXFLAGS="-fuse-ld=gold"
 fi
 
 if [ -n "$CLANG" ]; then
@@ -25,7 +22,7 @@ if [ -n "$CLANG" ]; then
 fi
 
 if [ -n "$SANITIZE" ]; then
-	export CXXFLAGS="-fsanitize=$SANITIZE $CXXFLAGS"
+	export CXXFLAGS="-fsanitize=$SANITIZE"
 fi
 
 $CMAKE .
