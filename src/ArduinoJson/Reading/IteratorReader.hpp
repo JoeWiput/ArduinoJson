@@ -12,7 +12,8 @@ class IteratorReader {
   TIterator _ptr, _end;
 
  public:
-  IteratorReader(TIterator begin, TIterator end) : _ptr(begin), _end(end) {}
+  explicit IteratorReader(TIterator begin, TIterator end)
+      : _ptr(begin), _end(end) {}
 
   bool ended() {
     return _ptr == _end;
@@ -26,5 +27,12 @@ class IteratorReader {
     return char(*_ptr);
   }
 };
+
+template <typename TInput>
+inline IteratorReader<typename TInput::const_iterator> makeReader(
+    const TInput& input) {
+  return IteratorReader<typename TInput::const_iterator>(input.begin(),
+                                                         input.end());
+}
 }  // namespace Internals
 }  // namespace ArduinoJson

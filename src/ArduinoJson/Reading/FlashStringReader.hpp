@@ -8,11 +8,11 @@
 
 namespace ArduinoJson {
 namespace Internals {
-class FlashStringReader {
+class UnsafeFlashStringReader {
   const char* _ptr;
 
  public:
-  FlashStringReader(const __FlashStringHelper* ptr)
+  explicit UnsafeFlashStringReader(const __FlashStringHelper* ptr)
       : _ptr(reinterpret_cast<const char*>(ptr)) {}
 
   void move() {
@@ -24,9 +24,14 @@ class FlashStringReader {
   }
 
   bool ended() const {
-    return current() == 0;
+    // this reader cannot detect the end
+    return false;
   }
 };
+
+inline UnsafeFlashStringReader makeReader(TChar* input) {
+  return UnsafeFlashStringReader(input);
+}
 }  // namespace Internals
 }  // namespace ArduinoJson
 

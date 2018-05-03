@@ -17,7 +17,7 @@ struct ArduinoStreamReader {
   bool _ended;
 
  public:
-  ArduinoStreamReader(Stream& stream)
+  explicit ArduinoStreamReader(Stream& stream)
       : _stream(stream), _current(0), _ended(false) {}
 
   void move() {
@@ -42,6 +42,9 @@ struct ArduinoStreamReader {
   }
 };
 
+inline ArduinoStreamReader makeReader(Stream& input) {
+  return ArduinoStreamReader(input);
+}
 }  // namespace Internals
 }  // namespace ArduinoJson
 

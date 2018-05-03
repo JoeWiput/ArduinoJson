@@ -315,29 +315,35 @@ TEST_CASE("deserialize JSON array") {
     }
   }
 
-  SECTION("Misc") {
-    SECTION("Just an opening bracket") {
+  SECTION("Premature null-terminator") {
+    SECTION("After opening bracket") {
       JsonError err = deserializeJson(doc, "[");
 
       REQUIRE(err == JsonError::IncompleteInput);
     }
 
-    SECTION("Missing closing backet") {
+    SECTION("After value") {
       JsonError err = deserializeJson(doc, "[42");
 
       REQUIRE(err == JsonError::IncompleteInput);
     }
 
-    SECTION("Escape sequences") {
-      JsonError err =
-          deserializeJson(doc, "[\"1\\\"2\\\\3\\/4\\b5\\f6\\n7\\r8\\t9\"]");
-      JsonArray& arr = doc.as<JsonArray>();
+    SECTION("After comma") {
+      JsonError err = deserializeJson(doc, "[42,");
 
-      REQUIRE(err == JsonError::Ok);
-      REQUIRE(1 == arr.size());
-      REQUIRE(arr[0] == "1\"2\\3/4\b5\f6\n7\r8\t9");
+      REQUIRE(err == JsonError::IncompleteInput);
     }
+  }
 
+  SECTION("Premature end of input") {
+    SECTION("After opening bracket") {
+      JsonError err = deserializeJson(doc, "[]", 1);
+
+      REQUIRE(err == JsonError::IncompleteInput);
+    }
+  }
+
+  SECTION("Misc") {
     SECTION("Nested objects") {
       char jsonString[] =
           " [ { \"a\" : 1 , \"b\" : 2 } , { \"c\" : 3 , \"d\" : 4 } ] ";

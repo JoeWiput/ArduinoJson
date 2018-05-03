@@ -56,6 +56,14 @@ TEST_CASE("deserializeJson(DynamicJsonDocument&)") {
     REQUIRE_THAT(doc.as<char*>(), Equals("hello world"));
   }
 
+  SECTION("Escape sequences") {
+    JsonError err =
+        deserializeJson(doc, "\"1\\\"2\\\\3\\/4\\b5\\f6\\n7\\r8\\t9\"");
+
+    REQUIRE(err == JsonError::Ok);
+    REQUIRE(doc.as<std::string>() == "1\"2\\3/4\b5\f6\n7\r8\t9");
+  }
+
   SECTION("True") {
     JsonError err = deserializeJson(doc, "true");
 

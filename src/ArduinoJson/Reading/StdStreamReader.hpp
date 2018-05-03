@@ -16,7 +16,8 @@ class StdStreamReader {
   char _current;
 
  public:
-  StdStreamReader(std::istream& stream) : _stream(stream), _current(0) {}
+  explicit StdStreamReader(std::istream& stream)
+      : _stream(stream), _current(0) {}
 
   void move() {
     _current = 0;
@@ -38,6 +39,10 @@ class StdStreamReader {
     return _stream.eof() ? '\0' : static_cast<char>(_stream.get());
   }
 };
+
+inline StdStreamReader makeReader(std::istream& input) {
+  return StdStreamReader(input);
+}
 }  // namespace Internals
 }  // namespace ArduinoJson
 

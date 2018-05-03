@@ -33,6 +33,17 @@ JsonError deserializeJson(TDocument &doc, TChar *input) {
       .parse(doc.template to<JsonVariant>());
 }
 //
+// JsonError deserializeJson(TDocument& doc, TChar* input, size_t inputSize);
+// TDocument = DynamicJsonDocument, StaticJsonDocument
+// TChar* = char*, const char*, const FlashStringHelper*
+template <typename TDocument, typename TChar>
+JsonError deserializeJson(TDocument &doc, TChar *input, size_t inputSize) {
+  using namespace Internals;
+  return makeJsonDeserializer(&doc.buffer(), makeReader(input, inputSize),
+                              makeWriter(doc.buffer(), input), doc.nestingLimit)
+      .parse(doc.template to<JsonVariant>());
+}
+//
 // JsonError deserializeJson(TDocument& doc, TString input);
 // TDocument = DynamicJsonDocument, StaticJsonDocument
 // TString = std::istream&, Stream&
