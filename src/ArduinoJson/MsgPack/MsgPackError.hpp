@@ -12,7 +12,7 @@ namespace ArduinoJson {
 
 class MsgPackError {
  public:
-  enum Code { Ok, NotSupported, NoMemory, TooDeep };
+  enum Code { Ok, NotSupported, NoMemory, TooDeep, IncompleteInput };
 
   MsgPackError() {}
 
@@ -48,6 +48,8 @@ class MsgPackError {
         return "NoMemory";
       case TooDeep:
         return "TooDeep";
+      case IncompleteInput:
+        return "IncompleteInput";
       default:
         return "???";
     }
