@@ -30,27 +30,28 @@ class MsgPackDeserializer {
         _nestingLimit(nestingLimit) {}
 
   MsgPackError parse(JsonVariant &variant) {
-    uint8_t c = readOne();
+    uint8_t code;
+    if (!read(code)) return MsgPackError::IncompleteInput;
 
-    if ((c & 0x80) == 0) {
-      variant = c;
+    if ((code & 0x80) == 0) {
+      variant = code;
       return MsgPackError::Ok;
     }
 
-    if ((c & 0xe0) == 0xe0) {
-      variant = static_cast<int8_t>(c);
+    if ((code & 0xe0) == 0xe0) {
+      variant = static_cast<int8_t>(code);
       return MsgPackError::Ok;
     }
 
-    if ((c & 0xe0) == 0xa0) {
-      return readString(variant, c & 0x1f);
+    if ((code & 0xe0) == 0xa0) {
+      return readString(variant, code & 0x1f);
     }
 
-    if ((c & 0xf0) == 0x90) return readArray(variant, c & 0x0F);
+    if ((code & 0xf0) == 0x90) return readArray(variant, code & 0x0F);
 
-    if ((c & 0xf0) == 0x80) return readObject(variant, c & 0x0F);
+    if ((code & 0xf0) == 0x80) return readObject(variant, code & 0x0F);
 
-    switch (c) {
+    switch (code) {
       case 0xc0:
         variant = static_cast<char *>(0);
         return MsgPackError::Ok;
@@ -149,14 +150,15 @@ class MsgPackDeserializer {
   // Prevent VS warning "assignment operator could not be generated"
   MsgPackDeserializer &operator=(const MsgPackDeserializer &);
 
-  uint8_t readOne() {
-    char c = _reader.current();
+  bool read(uint8_t &value) {
+    if (_reader.ended()) return false;
+    value = static_cast<uint8_t>(_reader.current());
     _reader.move();
-    return static_cast<uint8_t>(c);
+    return true;
   }
 
   void read(uint8_t *p, size_t n) {
-    for (size_t i = 0; i < n; i++) p[i] = readOne();
+    for (size_t i = 0; i < n; i++) read(p[i]);
   }
 
   template <typename T>
@@ -201,7 +203,11 @@ class MsgPackDeserializer {
 
   MsgPackError readString(JsonVariant &variant, size_t n) {
     typename RemoveReference<TWriter>::type::String str = _writer.startString();
-    for (; n; --n) str.append(static_cast<char>(readOne()));
+    for (; n; --n) {
+      uint8_t c;
+      read(c);
+      str.append(static_cast<char>(c));
+    }
     const char *s = str.c_str();
     if (s == NULL) return MsgPackError::NoMemory;
     variant = s;

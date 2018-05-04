@@ -35,6 +35,20 @@ MsgPackError deserializeMsgPack(TDocument &doc, TChar *input) {
       .parse(doc.template to<JsonVariant>());
 }
 //
+// MsgPackError deserializeMsgPack(TDocument& doc, TChar* input, size_t
+// inputSize);
+// TDocument = DynamicJsonDocument, StaticJsonDocument TChar* =
+// char*, const char*, const FlashStringHelper*
+template <typename TDocument, typename TChar>
+MsgPackError deserializeMsgPack(TDocument &doc, TChar *input,
+                                size_t inputSize) {
+  using namespace Internals;
+  return makeMsgPackDeserializer(&doc.buffer(), makeReader(input, inputSize),
+                                 makeWriter(doc.buffer(), input),
+                                 doc.nestingLimit)
+      .parse(doc.template to<JsonVariant>());
+}
+//
 // MsgPackError deserializeMsgPack(TDocument& doc, TString input);
 // TDocument = DynamicJsonDocument, StaticJsonDocument
 // TString = std::istream&, Stream&
