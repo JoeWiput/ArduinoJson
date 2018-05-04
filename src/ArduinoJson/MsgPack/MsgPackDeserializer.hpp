@@ -130,10 +130,10 @@ class MsgPackDeserializer {
       }
 
       case 0xdc:
-        return readArray(variant, readInteger<uint16_t>());
+        return readArray<uint16_t>(variant);
 
       case 0xdd:
-        return readArray(variant, readInteger<uint32_t>());
+        return readArray<uint32_t>(variant);
 
       case 0xde:
         return readObject(variant, readInteger<uint16_t>());
@@ -157,13 +157,16 @@ class MsgPackDeserializer {
     return true;
   }
 
-  void read(uint8_t *p, size_t n) {
-    for (size_t i = 0; i < n; i++) read(p[i]);
+  bool read(uint8_t *p, size_t n) {
+    for (size_t i = 0; i < n; i++) {
+      if (!read(p[i])) return false;
+    }
+    return true;
   }
 
   template <typename T>
-  void read(T &value) {
-    read(reinterpret_cast<uint8_t *>(&value), sizeof(value));
+  bool read(T &value) {
+    return read(reinterpret_cast<uint8_t *>(&value), sizeof(value));
   }
 
   template <typename T>
@@ -172,6 +175,13 @@ class MsgPackDeserializer {
     read(value);
     fixEndianess(value);
     return value;
+  }
+
+  template <typename T>
+  bool readInteger(T &value) {
+    if (!read(value)) return false;
+    fixEndianess(value);
+    return true;
   }
 
   template <typename T>
@@ -212,6 +222,13 @@ class MsgPackDeserializer {
     if (s == NULL) return MsgPackError::NoMemory;
     variant = s;
     return MsgPackError::Ok;
+  }
+
+  template <typename TSize>
+  MsgPackError readArray(JsonVariant &variant) {
+    TSize size;
+    if (!readInteger(size)) return MsgPackError::IncompleteInput;
+    return readArray(variant, size);
   }
 
   MsgPackError readArray(JsonVariant &variant, size_t n) {
