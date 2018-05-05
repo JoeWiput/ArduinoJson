@@ -64,7 +64,7 @@ inline SafeCharPointerReader<TChar> makeReader(TChar* input, size_t n) {
 
 #if ARDUINOJSON_ENABLE_ARDUINO_STRING
 inline SafeCharPointerReader<char> makeReader(const String& input) {
-  return SafeCharPointerReader<char>(input.c_str(), input.lenght());
+  return SafeCharPointerReader<char>(input.c_str(), input.length());
 }
 #endif
 
