@@ -63,4 +63,20 @@ TEST_CASE("deserializeMsgPack() returns IncompleteInput") {
   SECTION("uint 64") {
     checkAllSizes("\xCF\x00\x00\x00\x00\x00\x00\x00\x00", 9);
   }
+
+  SECTION("int 8") {
+    checkAllSizes("\xD0\x01", 2);
+  }
+
+  SECTION("int 16") {
+    checkAllSizes("\xD1\x00\x01", 3);
+  }
+
+  SECTION("int 32") {
+    checkAllSizes("\xD2\x00\x00\x00\x01", 5);
+  }
+
+  SECTION("int 64") {
+    checkAllSizes("\xD3\x00\x00\x00\x00\x00\x00\x00\x00", 9);
+  }
 }

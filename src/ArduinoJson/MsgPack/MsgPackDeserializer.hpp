@@ -82,25 +82,21 @@ class MsgPackDeserializer {
 #endif
 
       case 0xd0:
-        variant = readInteger<int8_t>();
-        return MsgPackError::Ok;
+        return readInteger<int8_t>(variant);
 
       case 0xd1:
-        variant = readInteger<int16_t>();
-        return MsgPackError::Ok;
+        return readInteger<int16_t>(variant);
 
       case 0xd2:
-        variant = readInteger<int32_t>();
-        return MsgPackError::Ok;
+        return readInteger<int32_t>(variant);
 
       case 0xd3:
 #if ARDUINOJSON_USE_LONG_LONG || ARDUINOJSON_USE_INT64
-        variant = readInteger<int64_t>();
+        return readInteger<int64_t>(variant);
 #else
         readInteger<int32_t>();
-        variant = readInteger<int32_t>();
+        return readInteger<int32_t>(variant);
 #endif
-        return MsgPackError::Ok;
 
       case 0xca:
         variant = readFloat<float>();
