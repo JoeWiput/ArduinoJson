@@ -5,37 +5,46 @@
 #include <ArduinoJson.h>
 #include <catch.hpp>
 
-static void checkComplete(const char* input, size_t len) {
+MsgPackError deserialize(const char* input, size_t len) {
   DynamicJsonDocument doc;
 
-  MsgPackError error = deserializeMsgPack(doc, input, len);
-
-  REQUIRE(error == MsgPackError::Ok);
+  return deserializeMsgPack(doc, input, len);
 }
 
-static void checkIncomplete(const char* input, size_t len) {
-  DynamicJsonDocument doc;
+void checkAllSizes(const char* input, size_t len) {
+  REQUIRE(deserialize(input, len) == MsgPackError::Ok);
 
-  MsgPackError error = deserializeMsgPack(doc, input, len);
-
-  REQUIRE(error == MsgPackError::IncompleteInput);
+  while (--len) {
+    REQUIRE(deserialize(input, len) == MsgPackError::IncompleteInput);
+  }
 }
 
 TEST_CASE("deserializeMsgPack() returns IncompleteInput") {
   SECTION("empty input") {
-    checkIncomplete("\x00", 0);
-    checkComplete("\x00", 1);
+    checkAllSizes("\x00", 1);
   }
 
   SECTION("fixarray") {
-    checkIncomplete("\x91\x01", 1);
-    checkComplete("\x00", 2);
+    checkAllSizes("\x91\x01", 2);
   }
 
   SECTION("array 16") {
-    checkIncomplete("\xDC\x00\x01\x01", 1);
-    checkIncomplete("\xDC\x00\x01\x01", 2);
-    checkIncomplete("\xDC\x00\x01\x01", 3);
-    checkComplete("\xDC\x00\x01\x01", 4);
+    checkAllSizes("\xDC\x00\x01\x01", 4);
+  }
+
+  SECTION("array 32") {
+    checkAllSizes("\xDD\x00\x00\x00\x01\x01", 6);
+  }
+
+  SECTION("fixmap") {
+    checkAllSizes("\x81\xA3one\x01", 6);
+  }
+
+  SECTION("map 16") {
+    checkAllSizes("\xDE\x00\x01\xA3one\x01", 8);
+  }
+
+  SECTION("map 32") {
+    checkAllSizes("\xDF\x00\x00\x00\x01\xA3one\x01", 10);
   }
 }

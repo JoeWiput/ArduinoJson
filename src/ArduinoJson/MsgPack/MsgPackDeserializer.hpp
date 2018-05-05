@@ -136,10 +136,10 @@ class MsgPackDeserializer {
         return readArray<uint32_t>(variant);
 
       case 0xde:
-        return readObject(variant, readInteger<uint16_t>());
+        return readObject<uint16_t>(variant);
 
       case 0xdf:
-        return readObject(variant, readInteger<uint32_t>());
+        return readObject<uint32_t>(variant);
 
       default:
         return MsgPackError::NotSupported;
@@ -249,6 +249,13 @@ class MsgPackDeserializer {
     }
     ++_nestingLimit;
     return MsgPackError::Ok;
+  }
+
+  template <typename TSize>
+  MsgPackError readObject(JsonVariant &variant) {
+    TSize size;
+    if (!readInteger(size)) return MsgPackError::IncompleteInput;
+    return readObject(variant, size);
   }
 
   MsgPackError readObject(JsonVariant &variant, size_t n) {
