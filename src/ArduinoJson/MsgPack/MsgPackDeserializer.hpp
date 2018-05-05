@@ -65,25 +65,21 @@ class MsgPackDeserializer {
         return MsgPackError::Ok;
 
       case 0xcc:
-        variant = readInteger<uint8_t>();
-        return MsgPackError::Ok;
+        return readInteger<uint8_t>(variant);
 
       case 0xcd:
-        variant = readInteger<uint16_t>();
-        return MsgPackError::Ok;
+        return readInteger<uint16_t>(variant);
 
       case 0xce:
-        variant = readInteger<uint32_t>();
-        return MsgPackError::Ok;
+        return readInteger<uint32_t>(variant);
 
       case 0xcf:
 #if ARDUINOJSON_USE_LONG_LONG || ARDUINOJSON_USE_INT64
-        variant = readInteger<uint64_t>();
+        return readInteger<uint64_t>(variant);
 #else
         readInteger<uint32_t>();
-        variant = readInteger<uint32_t>();
+        return readInteger<uint32_t>(variant);
 #endif
-        return MsgPackError::Ok;
 
       case 0xd0:
         variant = readInteger<int8_t>();
@@ -182,6 +178,14 @@ class MsgPackDeserializer {
     if (!read(value)) return false;
     fixEndianess(value);
     return true;
+  }
+
+  template <typename T>
+  MsgPackError readInteger(JsonVariant &variant) {
+    T value;
+    if (!readInteger(value)) return MsgPackError::IncompleteInput;
+    variant = value;
+    return MsgPackError::Ok;
   }
 
   template <typename T>
