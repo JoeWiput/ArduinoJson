@@ -79,4 +79,12 @@ TEST_CASE("deserializeMsgPack() returns IncompleteInput") {
   SECTION("int 64") {
     checkAllSizes("\xD3\x00\x00\x00\x00\x00\x00\x00\x00", 9);
   }
+
+  SECTION("float 32") {
+    checkAllSizes("\xCA\x40\x48\xF5\xC3", 5);
+  }
+
+  SECTION("float 64") {
+    checkAllSizes("\xCB\x40\x09\x21\xCA\xC0\x83\x12\x6F", 9);
+  }
 }

@@ -99,12 +99,10 @@ class MsgPackDeserializer {
 #endif
 
       case 0xca:
-        variant = readFloat<float>();
-        return MsgPackError::Ok;
+        return readFloat<float>(variant);
 
       case 0xcb:
-        variant = readDouble<double>();
-        return MsgPackError::Ok;
+        return readDouble<double>(variant);
 
       case 0xd9: {
         uint8_t n = readInteger<uint8_t>();
@@ -185,30 +183,36 @@ class MsgPackDeserializer {
   }
 
   template <typename T>
-  typename EnableIf<sizeof(T) == 4, T>::type readFloat() {
+  typename EnableIf<sizeof(T) == 4, MsgPackError>::type readFloat(
+      JsonVariant &variant) {
     T value;
-    read(value);
+    if (!read(value)) return MsgPackError::IncompleteInput;
     fixEndianess(value);
-    return value;
+    variant = value;
+    return MsgPackError::Ok;
   }
 
   template <typename T>
-  typename EnableIf<sizeof(T) == 8, T>::type readDouble() {
+  typename EnableIf<sizeof(T) == 8, MsgPackError>::type readDouble(
+      JsonVariant &variant) {
     T value;
-    read(value);
+    if (!read(value)) return MsgPackError::IncompleteInput;
     fixEndianess(value);
-    return value;
+    variant = value;
+    return MsgPackError::Ok;
   }
 
   template <typename T>
-  typename EnableIf<sizeof(T) == 4, T>::type readDouble() {
+  typename EnableIf<sizeof(T) == 4, MsgPackError>::type readDouble(
+      JsonVariant &variant) {
     uint8_t i[8];  // input is 8 bytes
     T value;       // output is 4 bytes
     uint8_t *o = reinterpret_cast<uint8_t *>(&value);
-    read(i, 8);
+    if (!read(i, 8)) return MsgPackError::IncompleteInput;
     doubleToFloat(i, o);
     fixEndianess(value);
-    return value;
+    variant = value;
+    return MsgPackError::Ok;
   }
 
   MsgPackError readString(JsonVariant &variant, size_t n) {
