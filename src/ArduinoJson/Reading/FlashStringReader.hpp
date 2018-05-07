@@ -29,8 +29,34 @@ class UnsafeFlashStringReader {
   }
 };
 
-inline UnsafeFlashStringReader makeReader(TChar* input) {
+class SafeFlashStringReader {
+  const char* _ptr;
+  const char* _end;
+
+ public:
+  explicit SafeFlashStringReader(const __FlashStringHelper* ptr, size_t size)
+      : _ptr(reinterpret_cast<const char*>(ptr)), _end(_ptr + size) {}
+
+  void move() {
+    _ptr++;
+  }
+
+  char current() const {
+    return pgm_read_byte_near(_ptr);
+  }
+
+  bool ended() const {
+    return _ptr == _end;
+  }
+};
+
+inline UnsafeFlashStringReader makeReader(const __FlashStringHelper* input) {
   return UnsafeFlashStringReader(input);
+}
+
+inline SafeFlashStringReader makeReader(const __FlashStringHelper* input,
+                                        size_t size) {
+  return SafeFlashStringReader(input, size);
 }
 }  // namespace Internals
 }  // namespace ArduinoJson
