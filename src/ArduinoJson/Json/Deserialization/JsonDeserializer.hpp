@@ -10,7 +10,6 @@
 #include "../../Reading/Reader.hpp"
 #include "../../TypeTraits/IsConst.hpp"
 #include "../Encoding.hpp"
-#include "./Comments.hpp"
 
 namespace ArduinoJson {
 namespace Internals {
@@ -25,7 +24,7 @@ class JsonDeserializer {
         _writer(writer),
         _nestingLimit(nestingLimit) {}
   JsonError parse(JsonVariant &variant) {
-    JsonError err = skipSpacesAndComments(_reader);
+    JsonError err = skipSpacesAndComments();
     if (err) return err;
 
     switch (_reader.current()) {
@@ -64,7 +63,7 @@ class JsonDeserializer {
     if (!eat('[')) return JsonError::InvalidInput;
 
     // Skip spaces
-    JsonError err = skipSpacesAndComments(_reader);
+    JsonError err = skipSpacesAndComments();
     if (err) return err;
 
     // Empty array?
@@ -81,7 +80,7 @@ class JsonDeserializer {
       if (!array->add(value)) return JsonError::NoMemory;
 
       // 2 - Skip spaces
-      err = skipSpacesAndComments(_reader);
+      err = skipSpacesAndComments();
       if (err) return err;
 
       // 3 - More values?
@@ -101,7 +100,7 @@ class JsonDeserializer {
     if (!eat('{')) return JsonError::InvalidInput;
 
     // Skip spaces
-    JsonError err = skipSpacesAndComments(_reader);
+    JsonError err = skipSpacesAndComments();
     if (err) return err;
 
     // Empty object?
@@ -115,7 +114,7 @@ class JsonDeserializer {
       if (err) return err;
 
       // Skip spaces
-      err = skipSpacesAndComments(_reader);
+      err = skipSpacesAndComments();
       if (err) return err;
 
       // Colon
@@ -130,7 +129,7 @@ class JsonDeserializer {
       if (!object->set(key, value)) return JsonError::NoMemory;
 
       // Skip spaces
-      err = skipSpacesAndComments(_reader);
+      err = skipSpacesAndComments();
       if (err) return err;
 
       // More keys/values?
@@ -138,7 +137,7 @@ class JsonDeserializer {
       if (!eat(',')) return JsonError::InvalidInput;
 
       // Skip spaces
-      err = skipSpacesAndComments(_reader);
+      err = skipSpacesAndComments();
       if (err) return err;
     }
   }
@@ -208,6 +207,67 @@ class JsonDeserializer {
 
   static inline bool isQuote(char c) {
     return c == '\'' || c == '\"';
+  }
+
+  JsonError skipSpacesAndComments() {
+    for (;;) {
+      if (_reader.ended()) return JsonError::IncompleteInput;
+      switch (_reader.current()) {
+        case '\0':
+          return JsonError::IncompleteInput;
+
+        // spaces
+        case ' ':
+        case '\t':
+        case '\r':
+        case '\n':
+          _reader.move();
+          continue;
+
+        // comments
+        case '/':
+          _reader.move();  // skip '/'
+          switch (_reader.current()) {
+            // block comment
+            case '*': {
+              _reader.move();  // skip '*'
+              bool wasStar = false;
+              for (;;) {
+                if (_reader.current() == '\0')
+                  return JsonError::IncompleteInput;
+                if (_reader.ended()) return JsonError::IncompleteInput;
+                if (_reader.current() == '/' && wasStar) {
+                  _reader.move();
+                  break;
+                }
+                wasStar = _reader.current() == '*';
+                _reader.move();
+              }
+              break;
+            }
+
+            // trailing comment
+            case '/':
+              // not need to skip "//"
+              for (;;) {
+                _reader.move();
+                if (_reader.current() == '\0')
+                  return JsonError::IncompleteInput;
+                if (_reader.ended()) return JsonError::IncompleteInput;
+                if (_reader.current() == '\n') break;
+              }
+              break;
+
+            // not a comment, just a '/'
+            default:
+              return JsonError::InvalidInput;
+          }
+          break;
+
+        default:
+          return JsonError::Ok;
+      }
+    }
   }
 
   JsonBuffer *_buffer;
