@@ -211,11 +211,8 @@ class JsonDeserializer {
 
   JsonError skipSpacesAndComments() {
     for (;;) {
-      if (_reader.ended()) return JsonError::IncompleteInput;
+      if (isEnded()) return JsonError::IncompleteInput;
       switch (_reader.current()) {
-        case '\0':
-          return JsonError::IncompleteInput;
-
         // spaces
         case ' ':
         case '\t':
@@ -233,9 +230,7 @@ class JsonDeserializer {
               _reader.move();  // skip '*'
               bool wasStar = false;
               for (;;) {
-                if (_reader.current() == '\0')
-                  return JsonError::IncompleteInput;
-                if (_reader.ended()) return JsonError::IncompleteInput;
+                if (isEnded()) return JsonError::IncompleteInput;
                 if (_reader.current() == '/' && wasStar) {
                   _reader.move();
                   break;
@@ -251,9 +246,7 @@ class JsonDeserializer {
               // not need to skip "//"
               for (;;) {
                 _reader.move();
-                if (_reader.current() == '\0')
-                  return JsonError::IncompleteInput;
-                if (_reader.ended()) return JsonError::IncompleteInput;
+                if (isEnded()) return JsonError::IncompleteInput;
                 if (_reader.current() == '\n') break;
               }
               break;
