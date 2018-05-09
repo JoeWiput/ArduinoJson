@@ -27,7 +27,7 @@ class JsonDeserializer {
     JsonError err = skipSpacesAndComments();
     if (err) return err;
 
-    switch (last()) {
+    switch (_last) {
       case '[':
         return parseArray(variant);
 
@@ -47,15 +47,17 @@ class JsonDeserializer {
   }
 
   char last() {
-    return _reader.current();
+    _last = _reader.current();
+    return _last;
   }
 
   void read() {
+    _last = _reader.current();
     _reader.move();
   }
 
   FORCE_INLINE bool eat(char charToSkip) {
-    if (last() != charToSkip) return false;
+    if (_last != charToSkip) return false;
     read();
     return true;
   }
@@ -151,7 +153,7 @@ class JsonDeserializer {
   }
 
   JsonError parseValue(JsonVariant &variant) {
-    bool hasQuotes = isQuote(last());
+    bool hasQuotes = isQuote(_last);
     const char *value;
     JsonError error = parseString(&value);
     if (error) return error;
@@ -166,7 +168,7 @@ class JsonDeserializer {
   JsonError parseString(const char **result) {
     typename RemoveReference<TWriter>::type::String str = _writer.startString();
 
-    char c = last();
+    char c = _last;
     if (c == '\0') return JsonError::IncompleteInput;
 
     if (isQuote(c)) {  // quotes
@@ -275,6 +277,7 @@ class JsonDeserializer {
   TReader _reader;
   TWriter _writer;
   uint8_t _nestingLimit;
+  char _last;
 };
 
 template <typename TJsonBuffer, typename TReader, typename TWriter>
