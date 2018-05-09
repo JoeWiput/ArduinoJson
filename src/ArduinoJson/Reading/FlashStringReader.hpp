@@ -15,12 +15,8 @@ class UnsafeFlashStringReader {
   explicit UnsafeFlashStringReader(const __FlashStringHelper* ptr)
       : _ptr(reinterpret_cast<const char*>(ptr)) {}
 
-  void move() {
-    _ptr++;
-  }
-
-  char current() const {
-    return pgm_read_byte_near(_ptr);
+  char read() {
+    return pgm_read_byte_near(_ptr++);
   }
 
   bool ended() const {
@@ -37,12 +33,8 @@ class SafeFlashStringReader {
   explicit SafeFlashStringReader(const __FlashStringHelper* ptr, size_t size)
       : _ptr(reinterpret_cast<const char*>(ptr)), _end(_ptr + size) {}
 
-  void move() {
-    _ptr++;
-  }
-
-  char current() const {
-    return pgm_read_byte_near(_ptr);
+  char read() {
+    return pgm_read_byte_near(_ptr++);
   }
 
   bool ended() const {

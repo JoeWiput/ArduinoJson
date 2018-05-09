@@ -88,7 +88,7 @@ TEST_CASE("deserialize from std::stream") {
     REQUIRE(std::string("world") == obj["hello"]);
   }
 
-  SECTION("Should not read after the closing brace") {
+  SECTION("Should not read after the closing brace of an empty object") {
     std::istringstream json("{}123");
 
     deserializeJson(doc, json);
@@ -96,8 +96,32 @@ TEST_CASE("deserialize from std::stream") {
     REQUIRE('1' == char(json.get()));
   }
 
-  SECTION("Should not read after the closing bracket") {
+  SECTION("Should not read after the closing brace") {
+    std::istringstream json("{\"hello\":\"world\"}123");
+
+    deserializeJson(doc, json);
+
+    REQUIRE('1' == char(json.get()));
+  }
+
+  SECTION("Should not read after the closing bracket of an empty array") {
     std::istringstream json("[]123");
+
+    deserializeJson(doc, json);
+
+    REQUIRE('1' == char(json.get()));
+  }
+
+  SECTION("Should not read after the closing bracket") {
+    std::istringstream json("[\"hello\",\"world\"]123");
+
+    deserializeJson(doc, json);
+
+    REQUIRE('1' == char(json.get()));
+  }
+
+  SECTION("Should not read after the closing quote") {
+    std::istringstream json("\"hello\"123");
 
     deserializeJson(doc, json);
 

@@ -19,25 +19,16 @@ class StdStreamReader {
   explicit StdStreamReader(std::istream& stream)
       : _stream(stream), _current(0) {}
 
-  void move() {
-    _current = 0;
-  }
-
-  char current() {
-    if (!_current) _current = read();
-    return _current;
-  }
-
   bool ended() const {
     return _stream.eof();
   }
 
+  char read() {
+    return static_cast<char>(_stream.get());
+  }
+
  private:
   StdStreamReader& operator=(const StdStreamReader&);  // Visual Studio C4512
-
-  char read() {
-    return _stream.eof() ? '\0' : static_cast<char>(_stream.get());
-  }
 };
 
 inline StdStreamReader makeReader(std::istream& input) {

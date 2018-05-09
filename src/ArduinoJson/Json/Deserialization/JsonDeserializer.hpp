@@ -40,8 +40,7 @@ class JsonDeserializer {
     if (_reader.ended()) {
       _last = 0;
     } else {
-      _last = _reader.current();
-      _reader.move();
+      _last = _reader.read();
     }
   }
 

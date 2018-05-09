@@ -19,12 +19,8 @@ class IteratorReader {
     return _ptr == _end;
   }
 
-  void move() {
-    if (_ptr != _end) ++_ptr;
-  }
-
-  char current() const {
-    return char(*_ptr);
+  char read() {
+    return char(*_ptr++);
   }
 };
 

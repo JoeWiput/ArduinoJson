@@ -137,15 +137,14 @@ class MsgPackDeserializer {
   bool skip(uint8_t n) {
     while (n--) {
       if (_reader.ended()) return false;
-      _reader.move();
+      _reader.read();
     }
     return true;
   }
 
   bool readByte(uint8_t &value) {
     if (_reader.ended()) return false;
-    value = static_cast<uint8_t>(_reader.current());
-    _reader.move();
+    value = static_cast<uint8_t>(_reader.read());
     return true;
   }
 

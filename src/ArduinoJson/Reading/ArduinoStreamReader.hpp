@@ -20,25 +20,15 @@ struct ArduinoStreamReader {
   explicit ArduinoStreamReader(Stream& stream)
       : _stream(stream), _current(0), _ended(false) {}
 
-  void move() {
-    _current = 0;
-  }
-
-  char current() {
-    if (!_current) _current = read();
-    return _current;
-  }
-
-  bool ended() const {
-    return _ended;
-  }
-
- private:
   char read() {
     // don't use _stream.read() as it ignores the timeout
     char c = 0;
     _ended = _stream.readBytes(&c, 1) == 0;
     return c;
+  }
+
+  bool ended() const {
+    return _ended;
   }
 };
 
