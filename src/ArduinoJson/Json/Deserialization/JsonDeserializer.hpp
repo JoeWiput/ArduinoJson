@@ -24,6 +24,34 @@ class JsonDeserializer {
         _writer(writer),
         _nestingLimit(nestingLimit) {}
   JsonError parse(JsonVariant &variant) {
+    if (_reader.ended()) return JsonError::IncompleteInput;
+    read();
+    return parseVariant(variant);
+  }
+
+ private:
+  JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
+
+  bool isEnded() {
+    return _last == 0;
+  }
+
+  void read() {
+    if (_reader.ended()) {
+      _last = 0;
+    } else {
+      _last = _reader.current();
+      _reader.move();
+    }
+  }
+
+  FORCE_INLINE bool eat(char charToSkip) {
+    if (_last != charToSkip) return false;
+    read();
+    return true;
+  }
+
+  JsonError parseVariant(JsonVariant &variant) {
     JsonError err = skipSpacesAndComments();
     if (err) return err;
 
@@ -37,29 +65,6 @@ class JsonDeserializer {
       default:
         return parseValue(variant);
     }
-  }
-
- private:
-  JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
-
-  bool isEnded() {
-    return _reader.current() == 0 || _reader.ended();
-  }
-
-  char last() {
-    _last = _reader.current();
-    return _last;
-  }
-
-  void read() {
-    _last = _reader.current();
-    _reader.move();
-  }
-
-  FORCE_INLINE bool eat(char charToSkip) {
-    if (_last != charToSkip) return false;
-    read();
-    return true;
   }
 
   JsonError parseArray(JsonVariant &variant) {
@@ -84,7 +89,7 @@ class JsonDeserializer {
       // 1 - Parse value
       JsonVariant value;
       _nestingLimit--;
-      err = parse(value);
+      err = parseVariant(value);
       _nestingLimit++;
       if (err) return err;
       if (!array->add(value)) return JsonError::NoMemory;
@@ -133,7 +138,7 @@ class JsonDeserializer {
       // Parse value
       JsonVariant value;
       _nestingLimit--;
-      err = parse(value);
+      err = parseVariant(value);
       _nestingLimit++;
       if (err) return err;
       if (!object->set(key, value)) return JsonError::NoMemory;
@@ -175,7 +180,7 @@ class JsonDeserializer {
       read();
       char stopChar = c;
       for (;;) {
-        c = last();
+        c = _last;
         read();
         if (c == stopChar) break;
 
@@ -184,7 +189,7 @@ class JsonDeserializer {
         if (c == '\\') {
           if (isEnded()) return JsonError::IncompleteInput;
           // replace char
-          c = Encoding::unescapeChar(last());
+          c = Encoding::unescapeChar(_last);
           if (c == '\0') return JsonError::InvalidInput;
           read();
         }
@@ -193,9 +198,9 @@ class JsonDeserializer {
       }
     } else if (canBeInNonQuotedString(c)) {  // no quotes
       do {
-        read();
         str.append(c);
-        c = last();
+        read();
+        c = _last;
       } while (canBeInNonQuotedString(c));
     } else {
       return JsonError::InvalidInput;
@@ -222,30 +227,30 @@ class JsonDeserializer {
   JsonError skipSpacesAndComments() {
     for (;;) {
       if (isEnded()) return JsonError::IncompleteInput;
-      switch (last()) {
+      switch (_last) {
         // spaces
         case ' ':
         case '\t':
         case '\r':
         case '\n':
           read();
-          continue;
+          break;
 
         // comments
         case '/':
           read();  // skip '/'
-          switch (last()) {
+          switch (_last) {
             // block comment
             case '*': {
               read();  // skip '*'
               bool wasStar = false;
               for (;;) {
                 if (isEnded()) return JsonError::IncompleteInput;
-                if (last() == '/' && wasStar) {
+                if (_last == '/' && wasStar) {
                   read();
                   break;
                 }
-                wasStar = last() == '*';
+                wasStar = _last == '*';
                 read();
               }
               break;
@@ -257,7 +262,7 @@ class JsonDeserializer {
               for (;;) {
                 read();
                 if (isEnded()) return JsonError::IncompleteInput;
-                if (last() == '\n') break;
+                if (_last == '\n') break;
               }
               break;
 
