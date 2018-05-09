@@ -27,7 +27,7 @@ class JsonDeserializer {
     JsonError err = skipSpacesAndComments();
     if (err) return err;
 
-    switch (_reader.current()) {
+    switch (last()) {
       case '[':
         return parseArray(variant);
 
@@ -42,14 +42,22 @@ class JsonDeserializer {
  private:
   JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
 
-  FORCE_INLINE bool eat(char charToSkip) {
-    if (_reader.current() != charToSkip) return false;
-    _reader.move();
-    return true;
-  }
-
   bool isEnded() {
     return _reader.current() == 0 || _reader.ended();
+  }
+
+  char last() {
+    return _reader.current();
+  }
+
+  void read() {
+    _reader.move();
+  }
+
+  FORCE_INLINE bool eat(char charToSkip) {
+    if (last() != charToSkip) return false;
+    read();
+    return true;
   }
 
   JsonError parseArray(JsonVariant &variant) {
@@ -143,7 +151,7 @@ class JsonDeserializer {
   }
 
   JsonError parseValue(JsonVariant &variant) {
-    bool hasQuotes = isQuote(_reader.current());
+    bool hasQuotes = isQuote(last());
     const char *value;
     JsonError error = parseString(&value);
     if (error) return error;
@@ -158,15 +166,15 @@ class JsonDeserializer {
   JsonError parseString(const char **result) {
     typename RemoveReference<TWriter>::type::String str = _writer.startString();
 
-    char c = _reader.current();
+    char c = last();
     if (c == '\0') return JsonError::IncompleteInput;
 
     if (isQuote(c)) {  // quotes
-      _reader.move();
+      read();
       char stopChar = c;
       for (;;) {
-        c = _reader.current();
-        _reader.move();
+        c = last();
+        read();
         if (c == stopChar) break;
 
         if (isEnded()) return JsonError::IncompleteInput;
@@ -174,18 +182,18 @@ class JsonDeserializer {
         if (c == '\\') {
           if (isEnded()) return JsonError::IncompleteInput;
           // replace char
-          c = Encoding::unescapeChar(_reader.current());
+          c = Encoding::unescapeChar(last());
           if (c == '\0') return JsonError::InvalidInput;
-          _reader.move();
+          read();
         }
 
         str.append(c);
       }
     } else if (canBeInNonQuotedString(c)) {  // no quotes
       do {
-        _reader.move();
+        read();
         str.append(c);
-        c = _reader.current();
+        c = last();
       } while (canBeInNonQuotedString(c));
     } else {
       return JsonError::InvalidInput;
@@ -212,31 +220,31 @@ class JsonDeserializer {
   JsonError skipSpacesAndComments() {
     for (;;) {
       if (isEnded()) return JsonError::IncompleteInput;
-      switch (_reader.current()) {
+      switch (last()) {
         // spaces
         case ' ':
         case '\t':
         case '\r':
         case '\n':
-          _reader.move();
+          read();
           continue;
 
         // comments
         case '/':
-          _reader.move();  // skip '/'
-          switch (_reader.current()) {
+          read();  // skip '/'
+          switch (last()) {
             // block comment
             case '*': {
-              _reader.move();  // skip '*'
+              read();  // skip '*'
               bool wasStar = false;
               for (;;) {
                 if (isEnded()) return JsonError::IncompleteInput;
-                if (_reader.current() == '/' && wasStar) {
-                  _reader.move();
+                if (last() == '/' && wasStar) {
+                  read();
                   break;
                 }
-                wasStar = _reader.current() == '*';
-                _reader.move();
+                wasStar = last() == '*';
+                read();
               }
               break;
             }
@@ -245,9 +253,9 @@ class JsonDeserializer {
             case '/':
               // not need to skip "//"
               for (;;) {
-                _reader.move();
+                read();
                 if (isEnded()) return JsonError::IncompleteInput;
-                if (_reader.current() == '\n') break;
+                if (last() == '\n') break;
               }
               break;
 
