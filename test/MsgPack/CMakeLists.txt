@@ -12,6 +12,7 @@ add_executable(MsgPackTests
 	incompleteInput.cpp
 	nestingLimit.cpp
 	notSupported.cpp
+	std_string.cpp
 )
 
 target_link_libraries(MsgPackTests catch)

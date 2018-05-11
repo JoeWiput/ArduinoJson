@@ -11,35 +11,6 @@ static void eraseString(std::string &str) {
 }
 
 TEST_CASE("std::string") {
-  SECTION("deserializeMsgPack()") {
-    DynamicJsonDocument doc;
-
-    SECTION("should accept const string") {
-      const std::string input("\x92\x01\x02");
-
-      MsgPackError err = deserializeMsgPack(doc, input);
-
-      REQUIRE(err == MsgPackError::Ok);
-    }
-
-    SECTION("should accept temporary string") {
-      MsgPackError err = deserializeMsgPack(doc, std::string("\x92\x01\x02"));
-
-      REQUIRE(err == MsgPackError::Ok);
-    }
-
-    SECTION("should duplicate content") {
-      std::string input("\x91\xA5hello");
-
-      MsgPackError err = deserializeMsgPack(doc, input);
-      eraseString(input);
-
-      JsonArray &array = doc.as<JsonArray>();
-      REQUIRE(err == MsgPackError::Ok);
-      REQUIRE(std::string("hello") == array[0]);
-    }
-  }
-
   SECTION("JsonArray") {
     DynamicJsonDocument doc;
     JsonArray &array = doc.to<JsonArray>();
