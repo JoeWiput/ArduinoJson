@@ -43,10 +43,6 @@ class JsonDeserializer {
  private:
   JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
 
-  bool isEnded() {
-    return current() == 0;
-  }
-
   char current() {
     if (_current == UNKNOWN) {
       if (_reader.ended())
@@ -184,12 +180,13 @@ class JsonDeserializer {
         move();
         if (c == stopChar) break;
 
-        if (isEnded()) return JsonError::IncompleteInput;
+        if (c == '\0') return JsonError::IncompleteInput;
 
         if (c == '\\') {
-          if (isEnded()) return JsonError::IncompleteInput;
+          c = current();
+          if (c == 0) return JsonError::IncompleteInput;
           // replace char
-          c = Encoding::unescapeChar(current());
+          c = Encoding::unescapeChar(c);
           if (c == '\0') return JsonError::InvalidInput;
           move();
         }
@@ -226,8 +223,11 @@ class JsonDeserializer {
 
   JsonError skipSpacesAndComments() {
     for (;;) {
-      if (isEnded()) return JsonError::IncompleteInput;
       switch (current()) {
+        // end of string
+        case '\0':
+          return JsonError::IncompleteInput;
+
         // spaces
         case ' ':
         case '\t':
@@ -245,12 +245,13 @@ class JsonDeserializer {
               move();  // skip '*'
               bool wasStar = false;
               for (;;) {
-                if (isEnded()) return JsonError::IncompleteInput;
-                if (current() == '/' && wasStar) {
+                char c = current();
+                if (c == '\0') return JsonError::IncompleteInput;
+                if (c == '/' && wasStar) {
                   move();
                   break;
                 }
-                wasStar = current() == '*';
+                wasStar = c == '*';
                 move();
               }
               break;
@@ -258,11 +259,12 @@ class JsonDeserializer {
 
             // trailing comment
             case '/':
-              // not need to skip "//"
+              // no need to skip "//"
               for (;;) {
                 move();
-                if (isEnded()) return JsonError::IncompleteInput;
-                if (current() == '\n') break;
+                char c = current();
+                if (c == '\0') return JsonError::IncompleteInput;
+                if (c == '\n') break;
               }
               break;
 
