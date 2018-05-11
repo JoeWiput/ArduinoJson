@@ -8,6 +8,7 @@ add_executable(JsonSerializerTests
 	JsonObject.cpp
 	JsonObjectPretty.cpp
 	JsonVariant.cpp
+	std_stream.cpp
 )
 
 target_link_libraries(JsonSerializerTests catch)

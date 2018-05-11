@@ -6,7 +6,7 @@
 #include <catch.hpp>
 #include <sstream>
 
-TEST_CASE("serialize to std::stream") {
+TEST_CASE("operator<<(std::ostream)") {
   DynamicJsonDocument doc;
   std::ostringstream os;
 
