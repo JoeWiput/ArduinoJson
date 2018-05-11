@@ -22,39 +22,13 @@ class JsonDeserializer {
       : _buffer(buffer),
         _reader(reader),
         _writer(writer),
-        _nestingLimit(nestingLimit) {}
+        _nestingLimit(nestingLimit),
+        _current(UNKNOWN) {}
   JsonError parse(JsonVariant &variant) {
-    if (_reader.ended()) return JsonError::IncompleteInput;
-    read();
-    return parseVariant(variant);
-  }
-
- private:
-  JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
-
-  bool isEnded() {
-    return _last == 0;
-  }
-
-  void read() {
-    if (_reader.ended()) {
-      _last = 0;
-    } else {
-      _last = _reader.read();
-    }
-  }
-
-  FORCE_INLINE bool eat(char charToSkip) {
-    if (_last != charToSkip) return false;
-    read();
-    return true;
-  }
-
-  JsonError parseVariant(JsonVariant &variant) {
     JsonError err = skipSpacesAndComments();
     if (err) return err;
 
-    switch (_last) {
+    switch (current()) {
       case '[':
         return parseArray(variant);
 
@@ -64,6 +38,33 @@ class JsonDeserializer {
       default:
         return parseValue(variant);
     }
+  }
+
+ private:
+  JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
+
+  bool isEnded() {
+    return current() == 0;
+  }
+
+  char current() {
+    if (_current == UNKNOWN) {
+      if (_reader.ended())
+        _current = 0;
+      else
+        _current = _reader.read();
+    }
+    return _current;
+  }
+
+  void move() {
+    _current = UNKNOWN;
+  }
+
+  FORCE_INLINE bool eat(char charToSkip) {
+    if (current() != charToSkip) return false;
+    move();
+    return true;
   }
 
   JsonError parseArray(JsonVariant &variant) {
@@ -88,7 +89,7 @@ class JsonDeserializer {
       // 1 - Parse value
       JsonVariant value;
       _nestingLimit--;
-      err = parseVariant(value);
+      err = parse(value);
       _nestingLimit++;
       if (err) return err;
       if (!array->add(value)) return JsonError::NoMemory;
@@ -137,7 +138,7 @@ class JsonDeserializer {
       // Parse value
       JsonVariant value;
       _nestingLimit--;
-      err = parseVariant(value);
+      err = parse(value);
       _nestingLimit++;
       if (err) return err;
       if (!object->set(key, value)) return JsonError::NoMemory;
@@ -157,7 +158,7 @@ class JsonDeserializer {
   }
 
   JsonError parseValue(JsonVariant &variant) {
-    bool hasQuotes = isQuote(_last);
+    bool hasQuotes = isQuote(current());
     const char *value;
     JsonError error = parseString(&value);
     if (error) return error;
@@ -172,15 +173,15 @@ class JsonDeserializer {
   JsonError parseString(const char **result) {
     typename RemoveReference<TWriter>::type::String str = _writer.startString();
 
-    char c = _last;
+    char c = current();
     if (c == '\0') return JsonError::IncompleteInput;
 
     if (isQuote(c)) {  // quotes
-      read();
+      move();
       char stopChar = c;
       for (;;) {
-        c = _last;
-        read();
+        c = current();
+        move();
         if (c == stopChar) break;
 
         if (isEnded()) return JsonError::IncompleteInput;
@@ -188,18 +189,18 @@ class JsonDeserializer {
         if (c == '\\') {
           if (isEnded()) return JsonError::IncompleteInput;
           // replace char
-          c = Encoding::unescapeChar(_last);
+          c = Encoding::unescapeChar(current());
           if (c == '\0') return JsonError::InvalidInput;
-          read();
+          move();
         }
 
         str.append(c);
       }
     } else if (canBeInNonQuotedString(c)) {  // no quotes
       do {
+        move();
         str.append(c);
-        read();
-        c = _last;
+        c = current();
       } while (canBeInNonQuotedString(c));
     } else {
       return JsonError::InvalidInput;
@@ -226,31 +227,31 @@ class JsonDeserializer {
   JsonError skipSpacesAndComments() {
     for (;;) {
       if (isEnded()) return JsonError::IncompleteInput;
-      switch (_last) {
+      switch (current()) {
         // spaces
         case ' ':
         case '\t':
         case '\r':
         case '\n':
-          read();
-          break;
+          move();
+          continue;
 
         // comments
         case '/':
-          read();  // skip '/'
-          switch (_last) {
+          move();  // skip '/'
+          switch (current()) {
             // block comment
             case '*': {
-              read();  // skip '*'
+              move();  // skip '*'
               bool wasStar = false;
               for (;;) {
                 if (isEnded()) return JsonError::IncompleteInput;
-                if (_last == '/' && wasStar) {
-                  read();
+                if (current() == '/' && wasStar) {
+                  move();
                   break;
                 }
-                wasStar = _last == '*';
-                read();
+                wasStar = current() == '*';
+                move();
               }
               break;
             }
@@ -259,9 +260,9 @@ class JsonDeserializer {
             case '/':
               // not need to skip "//"
               for (;;) {
-                read();
+                move();
                 if (isEnded()) return JsonError::IncompleteInput;
-                if (_last == '\n') break;
+                if (current() == '\n') break;
               }
               break;
 
@@ -281,7 +282,8 @@ class JsonDeserializer {
   TReader _reader;
   TWriter _writer;
   uint8_t _nestingLimit;
-  char _last;
+  char _current;
+  static const char UNKNOWN = 0xFF;
 };
 
 template <typename TJsonBuffer, typename TReader, typename TWriter>
