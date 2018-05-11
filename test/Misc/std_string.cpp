@@ -37,22 +37,6 @@ TEST_CASE("std::string") {
       eraseString(value);
       REQUIRE(std::string("world") == array[0]);
     }
-
-    SECTION("serializeJson()") {
-      array.add(4);
-      array.add(2);
-      std::string json;
-      serializeJson(array, json);
-      REQUIRE(std::string("[4,2]") == json);
-    }
-
-    SECTION("serializeJsonPretty()") {
-      array.add(4);
-      array.add(2);
-      std::string json;
-      serializeJsonPretty(array, json);
-      REQUIRE(std::string("[\r\n  4,\r\n  2\r\n]") == json);
-    }
   }
 
   SECTION("JsonObject") {
@@ -191,22 +175,6 @@ TEST_CASE("std::string") {
       obj["hello"] = value;
       eraseString(value);
       REQUIRE(std::string("world") == obj["hello"]);
-    }
-
-    SECTION("serializeJson()") {
-      JsonObject &obj = doc.to<JsonObject>();
-      obj["key"] = "value";
-      std::string json;
-      serializeJson(doc, json);
-      REQUIRE(std::string("{\"key\":\"value\"}") == json);
-    }
-
-    SECTION("serializeJsonPretty()") {
-      JsonObject &obj = doc.to<JsonObject>();
-      obj["key"] = "value";
-      std::string json;
-      serializeJsonPretty(doc, json);
-      REQUIRE(std::string("{\r\n  \"key\": \"value\"\r\n}") == json);
     }
 
     SECTION("memoryUsage() increases when adding a new key") {
