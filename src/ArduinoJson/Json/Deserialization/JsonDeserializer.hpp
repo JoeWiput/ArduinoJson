@@ -285,7 +285,7 @@ class JsonDeserializer {
   TWriter _writer;
   uint8_t _nestingLimit;
   char _current;
-  static const char UNKNOWN = char(0xFF);
+  static const char UNKNOWN = 1;
 };
 
 template <typename TJsonBuffer, typename TReader, typename TWriter>
