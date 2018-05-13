@@ -23,7 +23,7 @@ class JsonDeserializer {
         _reader(reader),
         _writer(writer),
         _nestingLimit(nestingLimit),
-        _current(UNKNOWN) {}
+        _loaded(false) {}
   JsonError parse(JsonVariant &variant) {
     JsonError err = skipSpacesAndComments();
     if (err) return err;
@@ -44,17 +44,18 @@ class JsonDeserializer {
   JsonDeserializer &operator=(const JsonDeserializer &);  // non-copiable
 
   char current() {
-    if (_current == UNKNOWN) {
+    if (!_loaded) {
       if (_reader.ended())
         _current = 0;
       else
         _current = _reader.read();
+      _loaded = true;
     }
     return _current;
   }
 
   void move() {
-    _current = UNKNOWN;
+    _loaded = false;
   }
 
   FORCE_INLINE bool eat(char charToSkip) {
@@ -285,7 +286,7 @@ class JsonDeserializer {
   TWriter _writer;
   uint8_t _nestingLimit;
   char _current;
-  static const char UNKNOWN = 1;
+  bool _loaded;
 };
 
 template <typename TJsonBuffer, typename TReader, typename TWriter>

@@ -16,7 +16,7 @@ class UnsafeCharPointerReader {
       : _ptr(ptr ? ptr : reinterpret_cast<const TChar*>("")) {}
 
   char read() {
-    return *_ptr++;
+    return static_cast<char>(*_ptr++);
   }
 
   bool ended() const {
@@ -36,7 +36,7 @@ class SafeCharPointerReader {
         _end(_ptr + len) {}
 
   char read() {
-    return *_ptr++;
+    return static_cast<char>(*_ptr++);
   }
 
   bool ended() const {
