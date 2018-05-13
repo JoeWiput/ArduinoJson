@@ -11,19 +11,19 @@
 
 TEST_CASE("unsigned char[]") {
   SECTION("deserializeJson()") {
-    unsigned char json[] = "{\"a\":42}";
+    unsigned char input[] = "{\"a\":42}";
 
     StaticJsonDocument<JSON_OBJECT_SIZE(1)> doc;
-    JsonError err = deserializeJson(doc, json);
+    JsonError err = deserializeJson(doc, input);
 
     REQUIRE(err == JsonError::Ok);
   }
 
   SECTION("deserializeMsgPack()") {
-    unsigned char json[] = "\xDE\x00\x01\xA5Hello\xA5world";
+    unsigned char input[] = "\xDE\x00\x01\xA5Hello\xA5world";
 
     StaticJsonDocument<JSON_OBJECT_SIZE(2)> doc;
-    MsgPackError err = deserializeMsgPack(doc, json);
+    MsgPackError err = deserializeMsgPack(doc, input);
 
     REQUIRE(err == MsgPackError::Ok);
   }
